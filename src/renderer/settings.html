@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teglato — Configurações</title>
+    <link rel="stylesheet" href="./styles/settings.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div class="header-title">
+          <div class="header-badge" aria-hidden="true">T</div>
+          <div>
+            <h1>Teglato</h1>
+            <p>Configurações do gatinho e integração OBS</p>
+          </div>
+        </div>
+        <button id="btn-reset-pos" class="btn" type="button">Resetar Posição</button>
+      </header>
+
+      <section class="card">
+        <h2 class="card-title">Pelagem (13 opções)</h2>
+        <div id="coat-grid" class="coat-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Aparência &amp; Overlay</h2>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Escala</span>
+            <small>Tamanho do gato na tela (50% a 200%)</small>
+          </div>
+          <div class="slider-wrap">
+            <input id="input-scale" type="range" min="0.5" max="2" step="0.05" />
+            <span id="val-scale" class="value-pill">100%</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Opacidade</span>
+            <small>Transparência no desktop</small>
+          </div>
+          <div class="slider-wrap">
+            <input id="input-opacity" type="range" min="0.3" max="1" step="0.05" />
+            <span id="val-opacity" class="value-pill">100%</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Sempre no Topo (Always on Top)</span>
+            <small>Mantém o gato sobre jogos e outros aplicativos</small>
+          </div>
+          <label class="switch">
+            <input id="chk-always-on-top" type="checkbox" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Travar Posição (Click-Through Total)</span>
+            <small>Cliques atravessam até mesmo o próprio gato</small>
+          </div>
+          <label class="switch">
+            <input id="chk-locked" type="checkbox" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Iniciar com o Windows</span>
+            <small>Abre o overlay automaticamente ao ligar o PC</small>
+          </div>
+          <label class="switch">
+            <input id="chk-autostart" type="checkbox" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Comportamento</h2>
+        <div class="row">
+          <div class="row-label">
+            <span>Tempo para dormir</span>
+            <small>Segundos sem digitar ou mover o mouse</small>
+          </div>
+          <div class="slider-wrap">
+            <input id="input-sleep" type="range" min="15" max="300" step="5" />
+            <span id="val-sleep" class="value-pill">60s</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Efeitos Sonoros Opcionais</h2>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Ativar áudio sintetizado</span>
+            <small>Cliques suaves de teclado, mouse e ronronar ao dormir</small>
+          </div>
+          <label class="switch">
+            <input id="chk-audio-enabled" type="checkbox" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div id="audio-controls" class="audio-sub">
+          <div class="row">
+            <div class="row-label">
+              <span>Volume das teclas</span>
+            </div>
+            <div class="slider-wrap">
+              <input id="input-key-vol" type="range" min="0" max="1" step="0.05" />
+              <span id="val-key-vol" class="value-pill">35%</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-label">
+              <span>Volume do mouse</span>
+            </div>
+            <div class="slider-wrap">
+              <input id="input-mouse-vol" type="range" min="0" max="1" step="0.05" />
+              <span id="val-mouse-vol" class="value-pill">30%</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-label">
+              <span>Volume do ronronar</span>
+            </div>
+            <div class="slider-wrap">
+              <input id="input-purr-vol" type="range" min="0" max="1" step="0.05" />
+              <span id="val-purr-vol" class="value-pill">20%</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <small style="color: var(--text-muted)">Prévia instantânea do som</small>
+            <button id="btn-test-sound" class="btn" type="button">Testar Som</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">OBS Studio</h2>
+
+        <div class="row-label">
+          <span>URL para Fonte de Navegador (Browser Source)</span>
+          <small>Adicione no OBS com fundo transparente Alpha 100% nativo</small>
+        </div>
+
+        <div class="obs-url-box">
+          <input id="input-obs-url" class="input-text" type="text" readonly />
+          <button id="btn-copy-obs" class="btn btn-accent" type="button">Copiar URL</button>
+        </div>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Porta local do OBS</span>
+            <small>Reinicia o servidor local automaticamente</small>
+          </div>
+          <input id="input-obs-port" class="input-text input-port" type="number" min="1024" max="65535" />
+        </div>
+
+        <div class="row">
+          <div class="row-label">
+            <span>Fundo da janela</span>
+            <small>Use Chroma Key apenas se capturar por janela</small>
+          </div>
+          <select id="select-chroma" class="select-input">
+            <option value="transparent">Transparente (Padrão)</option>
+            <option value="green">Chroma Key Verde</option>
+            <option value="magenta">Chroma Key Magenta</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Atalhos Globais</h2>
+        <div class="shortcuts-list">
+          <div class="row">
+            <span>Abrir / fechar configurações</span>
+            <span class="kbd">Ctrl + Shift + ,</span>
+          </div>
+          <div class="row">
+            <span>Travar / destravar posição (Click-Through)</span>
+            <span class="kbd">Ctrl + Shift + L</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./settings.ts"></script>
+  </body>
+</html>
