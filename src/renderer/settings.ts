@@ -28,6 +28,7 @@ const el = {
   autostart: document.getElementById('chk-autostart') as HTMLInputElement,
   sleep: document.getElementById('input-sleep') as HTMLInputElement,
   valSleep: document.getElementById('val-sleep') as HTMLSpanElement,
+  floatingKeys: document.getElementById('chk-floating-keys') as HTMLInputElement,
   audioEnabled: document.getElementById('chk-audio-enabled') as HTMLInputElement,
   audioControls: document.getElementById('audio-controls') as HTMLDivElement,
   keyVol: document.getElementById('input-key-vol') as HTMLInputElement,
@@ -108,6 +109,7 @@ function renderForm(config: AppConfig): void {
 
   el.sleep.value = String(config.sleepTimeoutSec);
   el.valSleep.textContent = `${config.sleepTimeoutSec}s`;
+  el.floatingKeys.checked = config.showFloatingKeys;
 
   el.audioEnabled.checked = config.audio.enabled;
   el.audioControls.classList.toggle('disabled', !config.audio.enabled);
@@ -163,6 +165,10 @@ function bindEvents(): void {
 
   el.sleep.addEventListener('input', () => {
     void pushConfigUpdate({ ...currentConfig, sleepTimeoutSec: Number(el.sleep.value) });
+  });
+
+  el.floatingKeys.addEventListener('change', () => {
+    void pushConfigUpdate({ ...currentConfig, showFloatingKeys: el.floatingKeys.checked });
   });
 
   el.audioEnabled.addEventListener('change', () => {

@@ -46,6 +46,10 @@ pub struct WindowPosition {
     pub y: i32,
 }
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AppConfig {
@@ -56,6 +60,8 @@ pub struct AppConfig {
     pub locked: bool,
     pub autostart: bool,
     pub sleep_timeout_sec: u64,
+    #[serde(default = "default_true")]
+    pub show_floating_keys: bool,
     pub obs_port: u16,
     pub chroma_mode: String,
     pub audio: AudioConfig,
@@ -72,6 +78,7 @@ impl Default for AppConfig {
             locked: false,
             autostart: false,
             sleep_timeout_sec: 60,
+            show_floating_keys: true,
             obs_port: 3777,
             chroma_mode: "transparent".to_string(),
             audio: AudioConfig::default(),
@@ -191,5 +198,27 @@ mod tests {
         assert_eq!(loaded, cfg);
 
         let _ = fs::remove_file(&tmp);
+    }
+
+    #[test]
+    fn loads_legacy_config_without_show_floating_keys() {
+        let legacy_json = r#"{
+            "coat": "siamese",
+            "scale": 1.2,
+            "opacity": 1.0,
+            "alwaysOnTop": true,
+            "locked": false,
+            "autostart": false,
+            "sleepTimeoutSec": 45,
+            "obsPort": 3777,
+            "chromaMode": "transparent",
+            "audio": { "enabled": false, "keyVolume": 0.35, "mouseVolume": 0.3, "purrVolume": 0.2 },
+            "position": { "x": 100, "y": 200 }
+        }"#;
+
+        let loaded: AppConfig = serde_json::from_str(legacy_json).expect("legacy json should parse");
+        assert!(loaded.show_floating_keys);
+        assert_eq!(loaded.coat, "siamese");
+        assert_eq!(loaded.position, Some(WindowPosition { x: 100, y: 200 }));
     }
 }

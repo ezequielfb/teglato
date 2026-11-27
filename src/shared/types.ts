@@ -49,6 +49,8 @@ export interface AppConfig {
   autostart: boolean;
   /** Tempo sem atividade (segundos) até o gato fechar os olhos e dormir. */
   sleepTimeoutSec: number;
+  /** Quando true, exibe mini teclas subindo do teclado e sumindo ao digitar. */
+  showFloatingKeys: boolean;
   /** Porta local do servidor HTTP/WebSocket para o OBS Studio (127.0.0.1). */
   obsPort: number;
   chromaMode: ChromaMode;
@@ -65,6 +67,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   locked: false,
   autostart: false,
   sleepTimeoutSec: 60,
+  showFloatingKeys: true,
   obsPort: 3777,
   chromaMode: 'transparent',
   audio: {

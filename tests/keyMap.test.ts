@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   VISUAL_KEYS,
   computeKeyRects,
+  getKeyDisplayLabel,
   resolveVisualKey,
 } from '../src/shared/keyMap.ts';
 
@@ -48,5 +49,17 @@ describe('keyMap', () => {
     expect(space.cy).toBeLessThan(q.cy);
     expect(q.hand).toBe('left');
     expect(p.hand).toBe('right');
+  });
+
+  it('gera rótulos curtos e legíveis para teclas flutuantes', () => {
+    expect(getKeyDisplayLabel('KeyA')).toBe('A');
+    expect(getKeyDisplayLabel('Digit7')).toBe('7');
+    expect(getKeyDisplayLabel('Numpad3')).toBe('3');
+    expect(getKeyDisplayLabel('F5')).toBe('F5');
+    expect(getKeyDisplayLabel('Space')).toBe('␣');
+    expect(getKeyDisplayLabel('Enter')).toBe('↵');
+    expect(getKeyDisplayLabel('ArrowUp')).toBe('↑');
+    expect(getKeyDisplayLabel('ShiftLeft')).toBe('⇧');
+    expect(getKeyDisplayLabel('IntlRo')).toBe('/');
   });
 });

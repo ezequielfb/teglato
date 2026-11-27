@@ -4,10 +4,16 @@ import {
   type InputEvent,
   type WsMessage,
 } from '../shared/types.ts';
+import { getKeyDisplayLabel } from '../shared/keyMap.ts';
 import { SoundEngine } from './audio/soundEngine.ts';
 import { CatRenderer, getInteractiveHitBounds } from './rig/catRenderer.ts';
-import { LOGICAL_HEIGHT, LOGICAL_WIDTH, renderDesk } from './rig/deskRenderer.ts';
-import { SleepParticles } from './rig/particles.ts';
+import {
+  KEY_POLYGONS,
+  LOGICAL_HEIGHT,
+  LOGICAL_WIDTH,
+  renderDesk,
+} from './rig/deskRenderer.ts';
+import { FloatingKeyParticles, SleepParticles } from './rig/particles.ts';
 import { CatStateMachine } from './state.ts';
 
 declare global {
@@ -32,6 +38,7 @@ const isTauriRuntime = typeof window.__TAURI_INTERNALS__ !== 'undefined' && !isO
 let currentConfig: AppConfig = { ...DEFAULT_CONFIG };
 const state = new CatStateMachine();
 const catRenderer = new CatRenderer();
+const floatingKeys = new FloatingKeyParticles();
 const sleepParticles = new SleepParticles();
 const soundEngine = new SoundEngine();
 
@@ -50,6 +57,18 @@ function applyBackgroundMode(config: AppConfig): void {
 
 function handleIncomingInput(event: InputEvent): void {
   const effect = state.applyInput(event, currentConfig);
+
+  if (
+    event.type === 'key_down' &&
+    effect.triggeredKey &&
+    currentConfig.showFloatingKeys
+  ) {
+    const poly = KEY_POLYGONS.get(effect.triggeredKey);
+    if (poly) {
+      floatingKeys.spawn(poly.cx, poly.cy, getKeyDisplayLabel(event.code));
+    }
+  }
+
   // No OBS Browser Source, evitamos áudio duplicado para não somar com o desktop.
   if (isObsMode) {
     return;
@@ -212,6 +231,9 @@ function frame(now: number): void {
   const deskGeometry = renderDesk(ctx, state);
   catRenderer.updatePaws(dt, state, deskGeometry);
   catRenderer.renderHeadAndPaws(ctx, state, currentConfig.coat);
+
+  floatingKeys.update(dt);
+  floatingKeys.render(ctx);
 
   sleepParticles.update(dt, state.sleepBlend > 0.65, 294, 102);
   sleepParticles.render(ctx);

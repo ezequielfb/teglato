@@ -268,3 +268,76 @@ export function computeKeyRects(bounds: BoardBounds): Map<string, KeyPolygon> {
 
   return result;
 }
+
+const KEY_DISPLAY_LABELS: Record<string, string> = {
+  Space: '␣',
+  Enter: '↵',
+  NumpadEnter: '↵',
+  Backspace: '⌫',
+  Tab: '⇥',
+  Escape: 'Esc',
+  CapsLock: 'Caps',
+  ShiftLeft: '⇧',
+  ShiftRight: '⇧',
+  ControlLeft: 'Ctrl',
+  ControlRight: 'Ctrl',
+  AltLeft: 'Alt',
+  AltRight: 'Alt',
+  MetaLeft: 'Win',
+  MetaRight: 'Win',
+  ContextMenu: 'Menu',
+  Delete: 'Del',
+  Insert: 'Ins',
+  Home: 'Home',
+  End: 'End',
+  PageUp: 'PgUp',
+  PageDown: 'PgDn',
+  PrintScreen: 'PrtSc',
+  ScrollLock: 'ScrLk',
+  Pause: 'Pause',
+  NumLock: 'Num',
+  ArrowUp: '↑',
+  ArrowDown: '↓',
+  ArrowLeft: '←',
+  ArrowRight: '→',
+  Minus: '-',
+  NumpadSubtract: '-',
+  Equal: '=',
+  NumpadAdd: '+',
+  BracketLeft: '[',
+  BracketRight: ']',
+  Backslash: '\\',
+  IntlBackslash: '\\',
+  Semicolon: ';',
+  Quote: "'",
+  Comma: ',',
+  NumpadComma: ',',
+  Period: '.',
+  NumpadDecimal: '.',
+  Slash: '/',
+  NumpadDivide: '/',
+  IntlRo: '/',
+  NumpadMultiply: '*',
+  Backquote: '`',
+};
+
+/** Converte um código físico `KeyboardEvent.code` em um rótulo curto para a tecla flutuante. */
+export function getKeyDisplayLabel(code: string): string {
+  const mapped = KEY_DISPLAY_LABELS[code];
+  if (mapped) {
+    return mapped;
+  }
+  if (code.startsWith('Key') && code.length === 4) {
+    return code.slice(3);
+  }
+  if (code.startsWith('Digit') && code.length === 6) {
+    return code.slice(5);
+  }
+  if (code.startsWith('Numpad') && code.length === 7) {
+    return code.slice(6);
+  }
+  if (/^F\d{1,2}$/.test(code)) {
+    return code;
+  }
+  return code.slice(0, 4);
+}
