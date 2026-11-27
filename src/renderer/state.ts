@@ -12,7 +12,7 @@ export interface InputEffectResult {
   triggeredMouseClick: boolean;
 }
 
-const MOUSE_ACTIVE_HOLD_SEC = 1.6;
+const MOUSE_ACTIVE_HOLD_SEC = 3.0;
 const WAKE_SHAKE_DURATION_SEC = 0.45;
 const BLINK_DURATION_SEC = 0.16;
 
@@ -120,6 +120,7 @@ export class CatStateMachine {
         if (movedEnough) {
           wakeIfNeeded();
           this.mouseActiveTimer = MOUSE_ACTIVE_HOLD_SEC;
+          this.transferRightPawToMouse();
         }
         return result;
       }
@@ -128,6 +129,7 @@ export class CatStateMachine {
         wakeIfNeeded();
         this.mouseButtons[event.button] = true;
         this.mouseActiveTimer = MOUSE_ACTIVE_HOLD_SEC;
+        this.transferRightPawToMouse();
         result.triggeredMouseClick = true;
         return result;
       }
@@ -237,16 +239,24 @@ export class CatStateMachine {
 
   /**
    * Indica se a pata direita do gato (lado esquerdo da tela) deve segurar o mini mouse.
-   * Se alguma tecla for atribuída à pata direita sem botão do mouse pressionado, ela solta o mouse.
+   * Permanece no mouse enquanto houver movimento recente ou botão pressionado.
    */
   isPawHoldingMouse(): boolean {
-    if (this.mouseButtons.left || this.mouseButtons.right || this.mouseButtons.middle) {
-      return true;
+    return (
+      this.mouseButtons.left ||
+      this.mouseButtons.right ||
+      this.mouseButtons.middle ||
+      this.mouseActiveTimer > 0
+    );
+  }
+
+  private transferRightPawToMouse(): void {
+    if (this.activeRightKey !== null) {
+      if (this.activeLeftKey === null) {
+        this.activeLeftKey = this.activeRightKey;
+      }
+      this.activeRightKey = null;
     }
-    if (this.mouseActiveTimer <= 0) {
-      return false;
-    }
-    return this.activeRightKey === null;
   }
 
   /**
@@ -254,23 +264,10 @@ export class CatStateMachine {
    * alcança a tecla recém-pressionada.
    */
   private rebalancePaws(code: string, preferredHand: HandSide): void {
-    const mouseHeldByButton =
-      this.mouseButtons.left || this.mouseButtons.right || this.mouseButtons.middle;
-    const mouseRecentlyMoved = this.mouseActiveTimer > 0;
-
-    if (mouseHeldByButton) {
+    if (this.isPawHoldingMouse()) {
+      // Enquanto o mouse estiver ativo (movimento recente ou botão pressionado),
+      // a pata direita permanece no mouse e a pata esquerda assume qualquer tecla.
       this.activeRightKey = null;
-      this.activeLeftKey = code;
-      return;
-    }
-
-    if (mouseRecentlyMoved && preferredHand === 'left') {
-      this.activeLeftKey = code;
-      return;
-    }
-
-    if (mouseRecentlyMoved && this.activeLeftKey === null && this.pressedKeys.size === 1) {
-      // Uso híbrido: mantendo a pata direita no mouse enquanto a esquerda digita atalhos
       this.activeLeftKey = code;
       return;
     }
@@ -283,6 +280,14 @@ export class CatStateMachine {
   }
 
   private refreshActiveKeysAfterRelease(releasedCode: string): void {
+    if (this.isPawHoldingMouse()) {
+      this.activeRightKey = null;
+      if (this.activeLeftKey === releasedCode) {
+        this.activeLeftKey = this.findLatestPressedKey(null, null);
+      }
+      return;
+    }
+
     if (this.activeLeftKey === releasedCode) {
       this.activeLeftKey = this.findLatestPressedKey('left', this.activeRightKey);
     }
@@ -291,7 +296,10 @@ export class CatStateMachine {
     }
   }
 
-  private findLatestPressedKey(hand: HandSide, excludeCode: string | null): string | null {
+  private findLatestPressedKey(
+    hand: HandSide | null,
+    excludeCode: string | null,
+  ): string | null {
     let bestCode: string | null = null;
     let bestSeq = -1;
     for (const [code, seq] of this.pressedKeys.entries()) {
@@ -302,7 +310,7 @@ export class CatStateMachine {
       if (!def) {
         continue;
       }
-      if (def.hand === hand && seq > bestSeq) {
+      if ((hand === null || def.hand === hand) && seq > bestSeq) {
         bestCode = code;
         bestSeq = seq;
       }

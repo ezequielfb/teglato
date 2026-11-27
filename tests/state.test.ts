@@ -47,6 +47,42 @@ describe('CatStateMachine', () => {
     expect(state.activeLeftKey).toBe('KeyJ');
   });
 
+  it('não solta o mouse ao pressionar teclas do lado direito ou combos após mover o mouse', () => {
+    const state = new CatStateMachine();
+
+    // Move o mouse sem segurar nenhum botão
+    state.applyInput({ type: 'mouse_move', x: 0.7, y: 0.4 }, DEFAULT_CONFIG);
+    expect(state.isPawHoldingMouse()).toBe(true);
+
+    // Pressiona tecla do lado do mouse (KeyJ / Enter / Space) -> pata esquerda digita, direita continua no mouse
+    state.applyInput({ type: 'key_down', code: 'KeyJ' }, DEFAULT_CONFIG);
+    expect(state.isPawHoldingMouse()).toBe(true);
+    expect(state.activeRightKey).toBeNull();
+    expect(state.activeLeftKey).toBe('KeyJ');
+
+    // Combo W + Space com mouse ativo
+    state.applyInput({ type: 'key_up', code: 'KeyJ' }, DEFAULT_CONFIG);
+    state.applyInput({ type: 'key_down', code: 'KeyW' }, DEFAULT_CONFIG);
+    state.applyInput({ type: 'key_down', code: 'Space' }, DEFAULT_CONFIG);
+    expect(state.isPawHoldingMouse()).toBe(true);
+    expect(state.activeRightKey).toBeNull();
+    expect(state.activeLeftKey).toBe('Space');
+
+    // Ao soltar Space mantendo KeyW pressionada, a pata esquerda volta para KeyW sem soltar o mouse
+    state.applyInput({ type: 'key_up', code: 'Space' }, DEFAULT_CONFIG);
+    expect(state.isPawHoldingMouse()).toBe(true);
+    expect(state.activeRightKey).toBeNull();
+    expect(state.activeLeftKey).toBe('KeyW');
+
+    // Após expirar o tempo sem mexer no mouse (> 3.0s), volta à digitação normal com duas mãos
+    state.applyInput({ type: 'key_up', code: 'KeyW' }, DEFAULT_CONFIG);
+    advanceSeconds(state, 3.2, DEFAULT_CONFIG);
+    expect(state.isPawHoldingMouse()).toBe(false);
+
+    state.applyInput({ type: 'key_down', code: 'KeyJ' }, DEFAULT_CONFIG);
+    expect(state.activeRightKey).toBe('KeyJ');
+  });
+
   it('entra em modo sono após inatividade e desperta chacoalhando a cabeça', () => {
     const state = new CatStateMachine();
     const fastSleepConfig: AppConfig = { ...DEFAULT_CONFIG, sleepTimeoutSec: 5 };
