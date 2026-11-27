@@ -22,6 +22,24 @@ export const MOUSE_PAD_AREA = {
   rangeY: 11,
 };
 
+/** Posição da bolinha de lã vermelha no canto inferior direito do mousepad (botão Fechar). */
+export const YARN_BALL = {
+  cx: 398,
+  cy: 313,
+  radius: 11.5,
+  hitRadius: 15,
+};
+
+export interface DeskRenderOptions {
+  hoverYarnBall?: boolean;
+  showCloseTooltip?: boolean;
+}
+
+/** Verifica se uma coordenada lógica (480x360) está sobre a bolinha de lã vermelha. */
+export function isPointOnYarnBall(logicalX: number, logicalY: number): boolean {
+  return Math.hypot(logicalX - YARN_BALL.cx, logicalY - YARN_BALL.cy) <= YARN_BALL.hitRadius;
+}
+
 /** Pré-cálculo único das 63 teclas para 60 FPS sem alocações repetidas por frame. */
 export const KEY_POLYGONS: Map<string, KeyPolygon> = computeKeyRects(KEYBOARD_BOUNDS);
 
@@ -44,12 +62,13 @@ export function getMouseGeometry(state: CatStateMachine): DeskGeometry {
 }
 
 /**
- * Desenha o tapete de mesa trapezoidal, a sombra, o mini mouse móvel e o mini teclado
- * com destaque dourado nas teclas pressionadas.
+ * Desenha o tapete de mesa trapezoidal, a sombra, o mini mouse móvel,
+ * o mini teclado e a bolinha de lã vermelha para fechar o aplicativo.
  */
 export function renderDesk(
   ctx: CanvasRenderingContext2D,
   state: CatStateMachine,
+  options: DeskRenderOptions = {},
 ): DeskGeometry {
   const deskGeo = getMouseGeometry(state);
 
@@ -98,8 +117,142 @@ export function renderDesk(
   // 4. Mini teclado compacto em perspectiva
   drawMiniKeyboard(ctx, state.pressedKeys);
 
+  // 5. Bolinha de lã vermelha no canto inferior direito do mousepad (Fechar)
+  drawYarnBall(ctx, options);
+
   ctx.restore();
   return deskGeo;
+}
+
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  const r = Math.min(radius, width * 0.5, height * 0.5);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawYarnBall(
+  ctx: CanvasRenderingContext2D,
+  options: DeskRenderOptions,
+): void {
+  const hovered = Boolean(options.hoverYarnBall);
+  const scale = hovered ? 1.18 : 1.0;
+  const { cx, cy, radius } = YARN_BALL;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Sombra de contato no tapete da mesa
+  ctx.fillStyle = hovered ? 'rgba(255, 71, 71, 0.38)' : 'rgba(0, 0, 0, 0.34)';
+  ctx.beginPath();
+  ctx.ellipse(
+    0,
+    hovered ? 2 : 5,
+    hovered ? radius * 1.45 : radius * 1.1,
+    hovered ? radius * 1.45 : radius * 0.6,
+    0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.fill();
+
+  // Pontinha de fio solta no mousepad
+  ctx.strokeStyle = hovered ? '#ff6b6b' : '#b82e2e';
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-radius * 0.55, radius * 0.65);
+  ctx.quadraticCurveTo(-radius - 7, radius + 3, -radius - 13, radius - 1.5);
+  ctx.stroke();
+
+  ctx.save();
+  ctx.scale(scale, scale);
+
+  // Esfera da bolinha de lã com gradiente para volume
+  const grad = ctx.createRadialGradient(-3.5, -4, 1.5, 0, 0, radius);
+  if (hovered) {
+    grad.addColorStop(0, '#ff8585');
+    grad.addColorStop(0.55, '#ff4747');
+    grad.addColorStop(1, '#b82020');
+  } else {
+    grad.addColorStop(0, '#e55353');
+    grad.addColorStop(0.6, '#c93838');
+    grad.addColorStop(1, '#8f1f1f');
+  }
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Fios enrolados característicos da bolinha de lã (clipados ao círculo)
+  ctx.save();
+  ctx.clip();
+  ctx.strokeStyle = hovered ? 'rgba(255, 232, 232, 0.55)' : 'rgba(72, 12, 16, 0.45)';
+  ctx.lineWidth = 1.35;
+  ctx.beginPath();
+  ctx.arc(-3, -2, radius * 0.88, -0.5, 1.7);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(4, 3, radius * 0.85, 2.2, 4.7);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-radius, 1);
+  ctx.quadraticCurveTo(0, -5, radius, 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-3, -radius);
+  ctx.quadraticCurveTo(5, 0, -2, radius);
+  ctx.stroke();
+  ctx.restore();
+
+  // Borda de destaque forte quando em hover vs contorno discreto normal
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = hovered ? '#fff3cf' : '#2a1214';
+  ctx.lineWidth = hovered ? 2.0 : 1.3;
+  ctx.stroke();
+  ctx.restore();
+
+  // Legenda "Fechar" ao passar o mouse
+  if (hovered && options.showCloseTooltip !== false) {
+    const label = 'Fechar';
+    const boxW = 54;
+    const boxH = 21;
+    // Garante que a legenda nunca corte na borda direita do canvas (480px)
+    const boxX = Math.min(480 - cx - boxW - 6, -boxW * 0.5);
+    const boxY = -radius * scale - boxH - 8;
+
+    ctx.fillStyle = 'rgba(20, 22, 28, 0.94)';
+    ctx.strokeStyle = '#fff3cf';
+    ctx.lineWidth = 1.25;
+    drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff8e1';
+    ctx.font = '700 11px "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, boxX + boxW * 0.5, boxY + boxH * 0.5 + 0.5);
+  }
+
+  ctx.restore();
 }
 
 function drawMiniMouse(

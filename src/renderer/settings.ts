@@ -260,6 +260,17 @@ async function init(): Promise<void> {
   const config = await invoke<AppConfig>('get_config').catch(() => currentConfig);
   renderForm(config);
 
+  // Garante captura das teclas mesmo quando a janela de Configurações está em foco
+  window.addEventListener('keydown', (ev) => {
+    if (ev.repeat) {
+      return;
+    }
+    void invoke('emit_local_key', { code: ev.code, pressed: true }).catch(() => {});
+  });
+  window.addEventListener('keyup', (ev) => {
+    void invoke('emit_local_key', { code: ev.code, pressed: false }).catch(() => {});
+  });
+
   await listen<AppConfig>('config-updated', (ev) => {
     renderForm(ev.payload);
   });

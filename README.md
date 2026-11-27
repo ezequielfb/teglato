@@ -29,10 +29,10 @@ Qualquer pessoa pode baixar e executar diretamente no **Windows 10 ou Windows 11
 | Ação | Como fazer |
 | :--- | :--- |
 | **Mover o gato pela tela** | Clique e arraste sobre o gato ou a mesinha (quando destravado) |
-| **Abrir Configurações e trocar pelagem** | Clique no ícone do **Teglato** perto do relógio (Bandeja do Windows) ou pressione `Ctrl + Shift + ,` |
+| **Abrir Configurações e trocar pelagem** | **Duplo clique** no gato, ícone perto do relógio (Bandeja) ou `Ctrl + Shift + ,` |
 | **Travar / destravar posição (*Click-Through* total)** | Pressione `Ctrl + Shift + L` ou marque **Travar Posição** na Bandeja |
 | **Resetar tudo para o padrão** | Botão **Reset** nas Configurações ou na Bandeja (pelagem, tamanho, áudio e posição) |
-| **Fechar o aplicativo** | Clique com o botão direito no ícone da Bandeja → **Sair** |
+| **Fechar o aplicativo** | Clique na **bolinha de lã vermelha** no canto direito da mesa ou em **Sair** na Bandeja |
 
 ---
 

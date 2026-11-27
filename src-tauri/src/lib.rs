@@ -42,6 +42,22 @@ pub fn compute_bottom_right_position(
     }
 }
 
+/// Calcula a nova posição ao redimensionar mantendo o canto inferior direito ancorado
+/// (crescendo para cima e para a esquerda).
+pub fn compute_bottom_right_anchored_resize(
+    old_x: i32,
+    old_y: i32,
+    old_w: u32,
+    old_h: u32,
+    new_w: u32,
+    new_h: u32,
+) -> WindowPosition {
+    WindowPosition {
+        x: old_x + old_w as i32 - new_w as i32,
+        y: old_y + old_h as i32 - new_h as i32,
+    }
+}
+
 /// Verifica se ao menos 48x48 pixels da janela permanecem visíveis dentro de algum monitor ativo.
 pub fn is_position_visible_on_monitors(
     pos: &WindowPosition,
@@ -114,6 +130,22 @@ fn copy_obs_url(app: AppHandle) -> Result<String, String> {
 #[tauri::command]
 fn open_settings(app: AppHandle) {
     toggle_settings_window(&app);
+}
+
+#[tauri::command]
+fn emit_local_key(app: AppHandle, code: String, pressed: bool) {
+    let ev = if pressed {
+        input_hook::InputEvent::KeyDown { code }
+    } else {
+        input_hook::InputEvent::KeyUp { code }
+    };
+    input_hook::dispatch_input_event(&app, &ev);
+}
+
+#[tauri::command]
+fn quit_app(app: AppHandle) {
+    persist_current_overlay_position(&app);
+    app.exit(0);
 }
 
 pub fn copy_obs_url_to_clipboard(app: &AppHandle) -> Result<String, String> {
@@ -226,9 +258,36 @@ pub fn apply_overlay_config(app: &AppHandle, config: &AppConfig, restart_obs_ser
     save_config(app, config);
 
     if let Some(overlay) = app.get_webview_window("overlay") {
+        let old_pos = overlay.outer_position().ok();
+        let old_size = overlay.outer_size().ok();
+
         let target_w = (BASE_WINDOW_WIDTH * config.scale).round();
         let target_h = (BASE_WINDOW_HEIGHT * config.scale).round();
         let _ = overlay.set_size(LogicalSize::new(target_w, target_h));
+
+        if let (Some(pos), Some(prev), Ok(new_size)) = (old_pos, old_size, overlay.outer_size()) {
+            if prev.width > 0
+                && prev.height > 0
+                && (new_size.width != prev.width || new_size.height != prev.height)
+            {
+                let anchored = compute_bottom_right_anchored_resize(
+                    pos.x,
+                    pos.y,
+                    prev.width,
+                    prev.height,
+                    new_size.width,
+                    new_size.height,
+                );
+                let _ = overlay.set_position(PhysicalPosition::new(anchored.x, anchored.y));
+                if let Some(state) = app.try_state::<SharedState>() {
+                    if let Ok(mut cfg) = state.config.lock() {
+                        cfg.position = Some(anchored);
+                        save_config(app, &cfg);
+                    }
+                }
+            }
+        }
+
         let _ = overlay.set_always_on_top(config.always_on_top);
         let _ = overlay.set_ignore_cursor_events(config.locked);
         let _ = overlay.emit("config-updated", config);
@@ -396,6 +455,8 @@ pub fn run() {
             reset_all_config,
             copy_obs_url,
             open_settings,
+            emit_local_key,
+            quit_app,
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -506,5 +567,21 @@ mod tests {
             270,
             &monitors
         ));
+    }
+
+    #[test]
+    fn anchors_scale_resize_to_bottom_right_corner() {
+        // Crescendo de 360x270 em (1560, 770) -> canto inferior direito em (1920, 1040)
+        // Ao dobrar para 720x540, deve crescer para cima e para a esquerda: (1200, 500)
+        let grown = compute_bottom_right_anchored_resize(1560, 770, 360, 270, 720, 540);
+        assert_eq!(grown.x, 1200);
+        assert_eq!(grown.y, 500);
+        assert_eq!(grown.x + 720, 1920);
+        assert_eq!(grown.y + 540, 1040);
+
+        // Encolhendo de volta para 180x135 mantém o mesmo canto inferior direito
+        let shrunk = compute_bottom_right_anchored_resize(1200, 500, 720, 540, 180, 135);
+        assert_eq!(shrunk.x + 180, 1920);
+        assert_eq!(shrunk.y + 135, 1040);
     }
 }

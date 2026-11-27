@@ -11,6 +11,7 @@ import {
   KEY_POLYGONS,
   LOGICAL_HEIGHT,
   LOGICAL_WIDTH,
+  isPointOnYarnBall,
   renderDesk,
 } from './rig/deskRenderer.ts';
 import { FloatingKeyParticles, SleepParticles } from './rig/particles.ts';
@@ -41,6 +42,20 @@ const catRenderer = new CatRenderer();
 const floatingKeys = new FloatingKeyParticles();
 const sleepParticles = new SleepParticles();
 const soundEngine = new SoundEngine();
+
+let isHoveringYarnBall = false;
+
+function clientToLogical(clientX: number, clientY: number): { x: number; y: number } {
+  const w = Math.max(1, window.innerWidth);
+  const h = Math.max(1, window.innerHeight);
+  const scale = Math.min(w / LOGICAL_WIDTH, h / LOGICAL_HEIGHT);
+  const offsetX = (w - LOGICAL_WIDTH * scale) * 0.5;
+  const offsetY = (h - LOGICAL_HEIGHT * scale) * 0.5;
+  return {
+    x: (clientX - offsetX) / scale,
+    y: (clientY - offsetY) / scale,
+  };
+}
 
 function applyBackgroundMode(config: AppConfig): void {
   if (config.chromaMode === 'green') {
@@ -121,11 +136,65 @@ async function initTauriBridge(): Promise<void> {
   const appWindow = getCurrentWindow();
   const bounds = getInteractiveHitBounds();
 
-  // Permite arrastar o gato livremente apenas quando destravado e clicando na silhueta visível
+  // Captura teclas localmente caso a janela do próprio gato esteja focada (evita bypass do hook Win32 no WebView2)
+  window.addEventListener('keydown', (ev) => {
+    if (ev.repeat) {
+      return;
+    }
+    handleIncomingInput({ type: 'key_down', code: ev.code });
+    void invoke('emit_local_key', { code: ev.code, pressed: true }).catch(() => {});
+  });
+  window.addEventListener('keyup', (ev) => {
+    handleIncomingInput({ type: 'key_up', code: ev.code });
+    void invoke('emit_local_key', { code: ev.code, pressed: false }).catch(() => {});
+  });
+
+  let pendingDrag: { startX: number; startY: number; dragging: boolean } | null = null;
+  let lastClick: { time: number; x: number; y: number } | null = null;
+
+  canvas.addEventListener('pointerleave', () => {
+    isHoveringYarnBall = false;
+    pendingDrag = null;
+    canvas.style.cursor = 'default';
+  });
+
+  canvas.addEventListener('pointermove', (ev) => {
+    const logical = clientToLogical(ev.clientX, ev.clientY);
+    const hoveringBall = !currentConfig.locked && isPointOnYarnBall(logical.x, logical.y);
+    isHoveringYarnBall = hoveringBall;
+    canvas.style.cursor = hoveringBall ? 'pointer' : 'default';
+
+    if (pendingDrag && !pendingDrag.dragging && !currentConfig.locked) {
+      const dist = Math.hypot(ev.clientX - pendingDrag.startX, ev.clientY - pendingDrag.startY);
+      if (dist >= 5) {
+        pendingDrag.dragging = true;
+        lastClick = null;
+        void appWindow
+          .startDragging()
+          .then(() => {
+            setTimeout(() => {
+              void invoke('save_window_position').catch(() => {});
+            }, 120);
+          })
+          .catch(() => {});
+      }
+    }
+  });
+
+  // Bolinha de lã fecha o app; duplo clique no gato abre Configurações; arraste move o overlay
   canvas.addEventListener('pointerdown', (ev) => {
     if (ev.button !== 0 || currentConfig.locked) {
       return;
     }
+
+    const logical = clientToLogical(ev.clientX, ev.clientY);
+    if (isPointOnYarnBall(logical.x, logical.y)) {
+      pendingDrag = null;
+      lastClick = null;
+      void invoke('quit_app').catch(() => {});
+      return;
+    }
+
     const nx = ev.clientX / Math.max(1, window.innerWidth);
     const ny = ev.clientY / Math.max(1, window.innerHeight);
     const insideCatOrDesk =
@@ -135,16 +204,27 @@ async function initTauriBridge(): Promise<void> {
       return;
     }
 
-    void appWindow
-      .startDragging()
-      .then(() => {
-        // Após soltar o arraste, salva a nova posição na área de trabalho
-        setTimeout(() => {
-          void invoke('save_window_position').catch(() => {});
-        }, 120);
-      })
-      .catch(() => {});
+    const now = performance.now();
+    if (
+      lastClick &&
+      now - lastClick.time <= 360 &&
+      Math.hypot(ev.clientX - lastClick.x, ev.clientY - lastClick.y) <= 14
+    ) {
+      lastClick = null;
+      pendingDrag = null;
+      void invoke('open_settings').catch(() => {});
+      return;
+    }
+
+    lastClick = { time: now, x: ev.clientX, y: ev.clientY };
+    pendingDrag = { startX: ev.clientX, startY: ev.clientY, dragging: false };
   });
+
+  const clearPendingDrag = () => {
+    pendingDrag = null;
+  };
+  window.addEventListener('pointerup', clearPendingDrag);
+  window.addEventListener('pointercancel', clearPendingDrag);
 }
 
 function initObsWebSocket(): void {
@@ -232,9 +312,12 @@ function frame(now: number): void {
   ctx.scale(scale, scale);
   ctx.globalAlpha = isObsMode ? 1 : currentConfig.opacity;
 
-  // Ordem de camadas: cauda/corpo -> mesa/mouse/teclado -> cabeça/patas -> partículas Zzz
+  // Ordem de camadas: cauda/corpo -> mesa/mouse/teclado -> cabeça/patas -> teclas/Zzz
   catRenderer.renderBackAndBody(ctx, state, currentConfig.coat);
-  const deskGeometry = renderDesk(ctx, state);
+  const deskGeometry = renderDesk(ctx, state, {
+    hoverYarnBall: isHoveringYarnBall && !isObsMode && !currentConfig.locked,
+    showCloseTooltip: !isObsMode,
+  });
   catRenderer.updatePaws(dt, state, deskGeometry);
   catRenderer.renderHeadAndPaws(ctx, state, currentConfig.coat);
 

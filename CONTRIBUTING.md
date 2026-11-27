@@ -40,7 +40,7 @@ No modo navegador, o Canvas já responde diretamente ao seu teclado e mouse para
 
 1. Adicione o novo ID em `CoatId` no arquivo [src/shared/types.ts](src/shared/types.ts).
 2. Adicione a paleta e padrão em `COATS` no arquivo [src/renderer/rig/coats.ts](src/renderer/rig/coats.ts).
-3. Registre o mesmo ID em `VALID_COATS` em [src-tauri/src/store.rs](src-tauri/src/store.rs) e o rótulo do menu em `COAT_LABELS` em [src-tauri/src/tray.rs](src-tauri/src/tray.rs).
+3. Registre o mesmo ID em `VALID_COATS` em [src-tauri/src/store.rs](src-tauri/src/store.rs).
 4. Atualize a contagem esperada em [tests/coats.test.ts](tests/coats.test.ts) e rode `npm test`.
 
 ---

@@ -1,29 +1,11 @@
 use crate::store::AppConfig;
 use crate::{apply_overlay_config, copy_obs_url_to_clipboard, toggle_settings_window, SharedState};
-use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, MenuBuilder, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, Wry};
 
-const COAT_LABELS: &[(&str, &str)] = &[
-    ("tuxedo", "Tuxedo (Frajola)"),
-    ("orange-tabby", "Orange tabby (Laranja)"),
-    ("brown-tabby", "Brown tabby (Rajado)"),
-    ("calico", "Calico (Tricolor)"),
-    ("siamese", "Siamese (Siamês)"),
-    ("black", "Black (Preto)"),
-    ("white", "White (Branco)"),
-    ("blue-gray", "Blue gray (Cinza azulado)"),
-    ("gray-white", "Gray & white (Cinza e branco)"),
-    ("orange-white", "Orange & white (Laranja e branco)"),
-    ("tortoiseshell", "Tortoiseshell (Escaminha)"),
-    ("cream", "Cream (Creme)"),
-    ("silver", "Silver (Prateado)"),
-];
-
 pub struct TrayHandles {
     pub lock_item: CheckMenuItem<Wry>,
-    pub audio_item: CheckMenuItem<Wry>,
-    pub coat_items: Vec<(String, CheckMenuItem<Wry>)>,
 }
 
 pub fn setup_tray(app: &AppHandle, config: &AppConfig) -> tauri::Result<TrayHandles> {
@@ -34,22 +16,6 @@ pub fn setup_tray(app: &AppHandle, config: &AppConfig) -> tauri::Result<TrayHand
         .checked(config.locked)
         .build(app)?;
 
-    let audio_item = CheckMenuItemBuilder::with_id("toggle_audio", "Efeitos Sonoros")
-        .checked(config.audio.enabled)
-        .build(app)?;
-
-    let mut coat_submenu_builder = SubmenuBuilder::new(app, "Pelagem");
-    let mut coat_items = Vec::with_capacity(COAT_LABELS.len());
-
-    for (id, label) in COAT_LABELS {
-        let item = CheckMenuItemBuilder::with_id(format!("coat:{}", id), *label)
-            .checked(config.coat == *id)
-            .build(app)?;
-        coat_submenu_builder = coat_submenu_builder.item(&item);
-        coat_items.push(((*id).to_string(), item));
-    }
-    let coat_submenu = coat_submenu_builder.build()?;
-
     let copy_obs = MenuItemBuilder::with_id("copy_obs", "Copiar URL do OBS Studio").build(app)?;
     let reset_all = MenuItemBuilder::with_id("reset_all", "Reset").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "Sair").build(app)?;
@@ -58,8 +24,6 @@ pub fn setup_tray(app: &AppHandle, config: &AppConfig) -> tauri::Result<TrayHand
         .item(&open_settings)
         .separator()
         .item(&lock_item)
-        .item(&coat_submenu)
-        .item(&audio_item)
         .separator()
         .item(&copy_obs)
         .item(&reset_all)
@@ -89,11 +53,7 @@ pub fn setup_tray(app: &AppHandle, config: &AppConfig) -> tauri::Result<TrayHand
         })
         .build(app)?;
 
-    Ok(TrayHandles {
-        lock_item,
-        audio_item,
-        coat_items,
-    })
+    Ok(TrayHandles { lock_item })
 }
 
 pub fn sync_tray_state(app: &AppHandle, config: &AppConfig) {
@@ -108,10 +68,6 @@ pub fn sync_tray_state(app: &AppHandle, config: &AppConfig) {
     };
 
     let _ = handles.lock_item.set_checked(config.locked);
-    let _ = handles.audio_item.set_checked(config.audio.enabled);
-    for (id, item) in &handles.coat_items {
-        let _ = item.set_checked(*id == config.coat);
-    }
 }
 
 fn handle_tray_menu_event(app: &AppHandle, id: &str) {
@@ -127,16 +83,6 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) {
                 }
             }
         }
-        "toggle_audio" => {
-            if let Some(state) = app.try_state::<SharedState>() {
-                if let Ok(mut cfg) = state.config.lock() {
-                    cfg.audio.enabled = !cfg.audio.enabled;
-                    let snapshot = cfg.clone();
-                    drop(cfg);
-                    apply_overlay_config(app, &snapshot, false);
-                }
-            }
-        }
         "copy_obs" => {
             let _ = copy_obs_url_to_clipboard(app);
         }
@@ -146,17 +92,6 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) {
         "quit" => {
             crate::persist_current_overlay_position(app);
             app.exit(0);
-        }
-        other if other.starts_with("coat:") => {
-            let coat_id = other.trim_start_matches("coat:").to_string();
-            if let Some(state) = app.try_state::<SharedState>() {
-                if let Ok(mut cfg) = state.config.lock() {
-                    cfg.coat = coat_id;
-                    let snapshot = cfg.clone();
-                    drop(cfg);
-                    apply_overlay_config(app, &snapshot, false);
-                }
-            }
         }
         _ => {}
     }

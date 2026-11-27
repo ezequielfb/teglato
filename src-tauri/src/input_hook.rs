@@ -210,7 +210,7 @@ pub fn start_global_hook(app: tauri::AppHandle) {
         .ok();
 }
 
-fn dispatch_input_event(app: &tauri::AppHandle, event: &InputEvent) {
+pub(crate) fn dispatch_input_event(app: &tauri::AppHandle, event: &InputEvent) {
     if let Some(overlay) = app.get_webview_window("overlay") {
         let _ = overlay.emit("input-event", event);
     }
@@ -269,7 +269,8 @@ fn update_dynamic_click_through(
 #[cfg(windows)]
 mod win32 {
     use super::{vk_to_dom_code, RawHookEvent, HOOK_TX};
-    use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
+    use windows::Win32::Foundation::{HINSTANCE, LPARAM, LRESULT, WPARAM};
+    use windows::Win32::System::LibraryLoader::GetModuleHandleW;
     use windows::Win32::UI::WindowsAndMessaging::{
         CallNextHookEx, DispatchMessageW, GetMessageW, GetSystemMetrics, SetWindowsHookExW,
         TranslateMessage, UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG,
@@ -372,8 +373,12 @@ mod win32 {
 
     pub fn run_hook_loop() {
         unsafe {
-            let kb_hook = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_proc), None, 0).ok();
-            let mouse_hook = SetWindowsHookExW(WH_MOUSE_LL, Some(mouse_proc), None, 0).ok();
+            let hmod = GetModuleHandleW(None)
+                .ok()
+                .map(HINSTANCE::from)
+                .unwrap_or_default();
+            let kb_hook = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_proc), hmod, 0).ok();
+            let mouse_hook = SetWindowsHookExW(WH_MOUSE_LL, Some(mouse_proc), hmod, 0).ok();
 
             let mut msg = MSG::default();
             while GetMessageW(&mut msg, None, 0, 0).into() {

@@ -186,12 +186,19 @@ export class CatRenderer {
     ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, tip.x, tip.y);
     ctx.stroke();
 
-    // Base da cauda
-    ctx.strokeStyle = coat.pattern === 'calico' ? coat.markingColorAlt : coat.baseColor;
+    // Base da cauda (sólida com contraste limpo para rajados, escaminha e tricolor)
+    const tailColor =
+      coat.pattern === 'calico'
+        ? coat.markingColorAlt
+        : coat.pattern === 'tabby' || coat.pattern === 'tortoiseshell'
+          ? coat.markingColor
+          : coat.baseColor;
+
+    ctx.strokeStyle = tailColor;
     ctx.lineWidth = 14.5;
     ctx.stroke();
 
-    // Detalhes da cauda por padrão de pelagem
+    // Detalhes suaves da ponta apenas para siamês e bicolores
     if (coat.pattern === 'siamese') {
       ctx.strokeStyle = coat.secondaryColor;
       ctx.lineWidth = 14.5;
@@ -199,15 +206,6 @@ export class CatRenderer {
       ctx.moveTo(lerp(cp2.x, tip.x, 0.35), lerp(cp2.y, tip.y, 0.35));
       ctx.quadraticCurveTo(cp2.x, cp2.y, tip.x, tip.y);
       ctx.stroke();
-    } else if (coat.pattern === 'tabby' || coat.pattern === 'tortoiseshell') {
-      ctx.strokeStyle = coat.markingColor;
-      ctx.lineWidth = 14.5;
-      ctx.setLineDash([4, 9]);
-      ctx.beginPath();
-      ctx.moveTo(base.x, base.y);
-      ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, tip.x, tip.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
     } else if (coat.pattern === 'bicolor' || coat.pattern === 'tuxedo') {
       ctx.fillStyle = coat.pawTipColor;
       ctx.beginPath();
