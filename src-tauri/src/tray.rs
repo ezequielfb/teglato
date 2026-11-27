@@ -144,6 +144,7 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) {
             crate::reset_overlay_position(app);
         }
         "quit" => {
+            crate::persist_current_overlay_position(app);
             app.exit(0);
         }
         other if other.starts_with("coat:") => {
