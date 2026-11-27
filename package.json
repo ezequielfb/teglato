@@ -1,6 +1,6 @@
 {
   "name": "teglato",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Gatinho reativo de área de trabalho com overlay transparente always-on-top e suporte nativo a OBS Studio",
   "type": "module",

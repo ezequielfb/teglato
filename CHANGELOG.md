@@ -2,6 +2,13 @@
 
 Todas as alterações relevantes do **Teglato** são documentadas neste arquivo.
 
+## [0.2.1] - 2026-11-27
+
+### Corrigido
+- **Ronronar ao acordar:** Corrigido o grafo Web Audio do ronronar (tremolo separado do ganho mestre + parada e desconexão completa dos osciladores ao despertar ou silenciar).
+- **Teclas flutuantes mais visíveis:** Aumentados altura de subida, tamanho da mini keycap, contraste e compatibilidade do desenho arredondado em `CanvasRenderingContext2D`.
+- **Reset completo:** Substituído "Resetar Posição" por **Reset** (na janela de Configurações e na Bandeja), restaurando todas as configurações padrão (pelagem Tuxedo, escala 100%, áudio desligado, destravado, teclas flutuantes ativadas e posição no canto inferior direito).
+
 ## [0.2.0] - 2026-11-27
 
 ### Adicionado

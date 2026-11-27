@@ -102,8 +102,8 @@ fn save_window_position(app: AppHandle) {
 }
 
 #[tauri::command]
-fn reset_position(app: AppHandle) {
-    reset_overlay_position(&app);
+fn reset_all_config(app: AppHandle) -> AppConfig {
+    reset_all_settings(&app)
 }
 
 #[tauri::command]
@@ -179,8 +179,47 @@ pub fn place_overlay_bottom_right(app: &AppHandle) {
     }
 }
 
-pub fn reset_overlay_position(app: &AppHandle) {
+/// Restaura todas as configurações (pelagem, escala, áudio, atalhos/comportamento, OBS)
+/// e reposiciona o gato no canto inferior direito acima da barra de tarefas.
+pub fn reset_all_settings(app: &AppHandle) -> AppConfig {
+    let mut defaults = AppConfig::default();
+    let prev_port = app
+        .try_state::<SharedState>()
+        .and_then(|s| s.config.lock().ok().map(|c| c.obs_port))
+        .unwrap_or(3777);
+
+    if let Some(state) = app.try_state::<SharedState>() {
+        if let Ok(mut cfg) = state.config.lock() {
+            *cfg = defaults.clone();
+        }
+    }
+
+    let port_changed = defaults.obs_port != prev_port;
+    apply_overlay_config(app, &defaults, port_changed);
     place_overlay_bottom_right(app);
+
+    if let Some(state) = app.try_state::<SharedState>() {
+        if let Ok(cfg) = state.config.lock() {
+            defaults = cfg.clone();
+        }
+    }
+
+    if let Some(overlay) = app.get_webview_window("overlay") {
+        let _ = overlay.emit("config-updated", &defaults);
+    }
+    if let Some(settings) = app.get_webview_window("settings") {
+        let _ = settings.emit("config-updated", &defaults);
+    }
+    if let Some(state) = app.try_state::<SharedState>() {
+        if let Ok(payload) = serde_json::to_string(&serde_json::json!({
+            "kind": "config",
+            "config": &defaults,
+        })) {
+            let _ = state.obs_tx.send(payload);
+        }
+    }
+
+    defaults
 }
 
 pub fn apply_overlay_config(app: &AppHandle, config: &AppConfig, restart_obs_server: bool) {
@@ -191,9 +230,7 @@ pub fn apply_overlay_config(app: &AppHandle, config: &AppConfig, restart_obs_ser
         let target_h = (BASE_WINDOW_HEIGHT * config.scale).round();
         let _ = overlay.set_size(LogicalSize::new(target_w, target_h));
         let _ = overlay.set_always_on_top(config.always_on_top);
-        if config.locked {
-            let _ = overlay.set_ignore_cursor_events(true);
-        }
+        let _ = overlay.set_ignore_cursor_events(config.locked);
         let _ = overlay.emit("config-updated", config);
     }
 
@@ -356,7 +393,7 @@ pub fn run() {
             get_config,
             update_config,
             save_window_position,
-            reset_position,
+            reset_all_config,
             copy_obs_url,
             open_settings,
         ])

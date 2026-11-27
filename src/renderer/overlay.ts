@@ -61,7 +61,7 @@ function handleIncomingInput(event: InputEvent): void {
   if (
     event.type === 'key_down' &&
     effect.triggeredKey &&
-    currentConfig.showFloatingKeys
+    currentConfig.showFloatingKeys !== false
   ) {
     const poly = KEY_POLYGONS.get(effect.triggeredKey);
     if (poly) {
@@ -72,6 +72,9 @@ function handleIncomingInput(event: InputEvent): void {
   // No OBS Browser Source, evitamos áudio duplicado para não somar com o desktop.
   if (isObsMode) {
     return;
+  }
+  if (effect.wokeUp) {
+    soundEngine.stopPurr(true);
   }
   if (effect.triggeredKey) {
     soundEngine.playKeyTap(currentConfig.audio);
@@ -110,6 +113,9 @@ async function initTauriBridge(): Promise<void> {
   await listen<AppConfig>('config-updated', (ev) => {
     currentConfig = ev.payload;
     applyBackgroundMode(currentConfig);
+    if (!currentConfig.audio.enabled) {
+      soundEngine.stopPurr(true);
+    }
   });
 
   const appWindow = getCurrentWindow();

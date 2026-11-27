@@ -234,10 +234,14 @@ function bindEvents(): void {
 
   el.btnResetPos.addEventListener('click', async () => {
     if (!isTauriRuntime) {
+      renderForm(structuredClone(DEFAULT_CONFIG));
       return;
     }
     const { invoke } = await import('@tauri-apps/api/core');
-    await invoke('reset_position').catch(() => {});
+    const resetCfg = await invoke<AppConfig>('reset_all_config').catch(() => null);
+    if (resetCfg) {
+      renderForm(resetCfg);
+    }
   });
 }
 

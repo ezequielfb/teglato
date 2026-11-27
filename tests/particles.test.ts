@@ -7,14 +7,18 @@ describe('FloatingKeyParticles', () => {
     particles.spawn(240, 280, 'A');
     expect(particles.count).toBe(1);
 
-    // Avança 0.3s: ainda visível
-    for (let i = 0; i < 6; i++) {
+    const initialY = particles.getSnapshot()[0].y;
+
+    // Avança 0.5s: subiu bastante acima do teclado e ainda está visível
+    for (let i = 0; i < 10; i++) {
       particles.update(0.05);
     }
     expect(particles.count).toBe(1);
+    const risenY = particles.getSnapshot()[0].y;
+    expect(initialY - risenY).toBeGreaterThan(40);
 
-    // Avança até completar o ciclo (> 0.78s): remove automaticamente
-    for (let i = 0; i < 12; i++) {
+    // Avança até completar o ciclo (> 1.05s): remove automaticamente
+    for (let i = 0; i < 14; i++) {
       particles.update(0.05);
     }
     expect(particles.count).toBe(0);

@@ -51,7 +51,7 @@ pub fn setup_tray(app: &AppHandle, config: &AppConfig) -> tauri::Result<TrayHand
     let coat_submenu = coat_submenu_builder.build()?;
 
     let copy_obs = MenuItemBuilder::with_id("copy_obs", "Copiar URL do OBS Studio").build(app)?;
-    let reset_pos = MenuItemBuilder::with_id("reset_pos", "Resetar Posição").build(app)?;
+    let reset_all = MenuItemBuilder::with_id("reset_all", "Reset").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "Sair").build(app)?;
 
     let menu = MenuBuilder::new(app)
@@ -62,7 +62,7 @@ pub fn setup_tray(app: &AppHandle, config: &AppConfig) -> tauri::Result<TrayHand
         .item(&audio_item)
         .separator()
         .item(&copy_obs)
-        .item(&reset_pos)
+        .item(&reset_all)
         .separator()
         .item(&quit)
         .build()?;
@@ -140,8 +140,8 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) {
         "copy_obs" => {
             let _ = copy_obs_url_to_clipboard(app);
         }
-        "reset_pos" => {
-            crate::reset_overlay_position(app);
+        "reset_all" => {
+            crate::reset_all_settings(app);
         }
         "quit" => {
             crate::persist_current_overlay_position(app);
