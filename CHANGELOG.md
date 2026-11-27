@@ -2,6 +2,11 @@
 
 Todas as alterações relevantes do **Teglato** são documentadas neste arquivo.
 
+## [0.3.1] - 2026-11-27
+
+### Corrigido
+- **Tela branca ao abrir Configurações por duplo clique:** Tornado o comando `open_settings` assíncrono para evitar deadlock de inicialização do WebView2 no Windows ao criar a janela de Configurações a partir do overlay, além de definir cor de fundo escura inicial na janela.
+
 ## [0.3.0] - 2026-11-27
 
 ### Adicionado

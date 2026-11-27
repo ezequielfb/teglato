@@ -128,7 +128,7 @@ fn copy_obs_url(app: AppHandle) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn open_settings(app: AppHandle) {
+async fn open_settings(app: AppHandle) {
     toggle_settings_window(&app);
 }
 
@@ -330,7 +330,11 @@ pub fn apply_overlay_config(app: &AppHandle, config: &AppConfig, restart_obs_ser
 
 pub fn toggle_settings_window(app: &AppHandle) {
     if let Some(win) = app.get_webview_window("settings") {
-        if win.is_visible().unwrap_or(false) {
+        if win.is_minimized().unwrap_or(false) {
+            let _ = win.unminimize();
+            let _ = win.show();
+            let _ = win.set_focus();
+        } else if win.is_visible().unwrap_or(false) {
             let _ = win.hide();
         } else {
             let _ = win.show();
@@ -348,6 +352,7 @@ pub fn toggle_settings_window(app: &AppHandle) {
     .inner_size(520.0, 640.0)
     .min_inner_size(460.0, 520.0)
     .resizable(true)
+    .background_color(tauri::window::Color(19, 20, 25, 255))
     .center()
     .build()
     {
