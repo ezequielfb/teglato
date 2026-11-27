@@ -9,6 +9,10 @@ edition = "2021"
 name = "teglato_lib"
 crate-type = ["rlib"]
 
+[features]
+# Habilitado em builds de produção para embutir `../dist` no executável (sem precisar de dev server).
+custom-protocol = ["tauri/custom-protocol"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
