@@ -14,14 +14,13 @@ Um gatinho reativo para a área de trabalho inspirado no **LittleOne (小只)** 
 Qualquer pessoa pode baixar e executar diretamente no **Windows 10 ou Windows 11**, sem precisar instalar Node.js, Rust ou qualquer dependência:
 
 [![Baixar Teglato.exe](https://img.shields.io/badge/Baixar_Direto-Teglato.exe_(1_clique)-f5be41?style=for-the-badge&logo=windows&logoColor=14151a)](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato.exe)
-[![Baixar Teglato-Windows.zip](https://img.shields.io/badge/Baixar_ZIP-Teglato--Windows.zip-232631?style=for-the-badge&logo=files&logoColor=white)](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato-Windows.zip)
 
-1. Clique em [**Baixar Teglato.exe**](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato.exe) (ou em [**Teglato-Windows.zip**](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato-Windows.zip), que traz só o programa + `LEIA-ME.txt`).
-2. Dê duplo clique em **`Teglato.exe`** — o gatinho já abre posicionado no canto inferior direito da tela, logo acima da barra de tarefas, e memoriza onde você deixá-lo ao fechar.
+1. Clique no botão [**Baixar Teglato.exe**](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato.exe) acima.
+2. Dê duplo clique no **`Teglato.exe`** baixado — o gatinho já abre posicionado no canto inferior direito da tela, logo acima da barra de tarefas, e memoriza onde você deixá-lo ao fechar.
 3. Pronto! A janela do gato é **100% limpa** (sem botões ou molduras) e os cliques nas áreas transparentes atravessam direto para os programas de trás.
 
 > [!NOTE]
-> Se abrir a página de [**Releases**](https://github.com/ezequielfb/teglato/releases/latest), baixe **`Teglato.exe`** ou **`Teglato-Windows.zip`**. Os arquivos `Source code (zip)` / `Source code (tar.gz)` são gerados automaticamente pelo GitHub apenas para quem programa.
+> Se abrir a página de [**Releases**](https://github.com/ezequielfb/teglato/releases/latest), baixe apenas **`Teglato.exe`**. Os arquivos `Source code (zip)` / `Source code (tar.gz)` são gerados automaticamente pelo GitHub apenas para quem programa.
 
 ---
 
@@ -57,6 +56,7 @@ O **Teglato** já embute um servidor local exclusivo para captura cristalina no 
 
 - **13 pelagens incluídas desde o início:** `Tuxedo` (Frajola), `Orange tabby`, `Brown tabby`, `Calico`, `Siamese`, `Black`, `White`, `Blue gray`, `Gray & white`, `Orange & white`, `Tortoiseshell`, `Cream` e `Silver`.
 - **Digitação e mouse fiéis ao original:** Cada tecla física acende e abaixa na tecla equivalente do mini teclado em perspectiva (com suporte a teclados ABNT2/PT-BR e *numpad*), enquanto a pata esquerda do gato digita livremente sem soltar o mouse durante o uso simultâneo.
+- **Teclas flutuantes ao digitar:** A tecla pressionada sobe suavemente do mini teclado e desaparece com *fade-out* (ativado por padrão e configurável em `Ctrl + Shift + ,`).
 - **Vida própria:** Piscadas aleatórias, cauda balançando, modo sono após inatividade configurável (`Zzz`) e chacoalhada na cabeça ao acordar.
 - **Áudio opcional:** Cliques suaves de teclado/mouse e ronronar sintetizados via Web Audio API (desativado por padrão; configurável em `Ctrl + Shift + ,`).
 
