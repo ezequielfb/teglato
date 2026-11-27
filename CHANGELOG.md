@@ -2,6 +2,14 @@
 
 Todas as alterações relevantes do **Teglato** são documentadas neste arquivo.
 
+## [0.2.0] - 2026-11-27
+
+### Adicionado
+- Animação de **teclas flutuantes**: cada tecla pressionada sobe suavemente a partir do mini teclado e desaparece com *fade-out*, com opção de ligar/desligar em **Configurações → Comportamento → Teclas flutuantes** (retrocompatível com `config.json` anteriores).
+
+### Alterado
+- Distribuição oficial simplificada para arquivo único portátil **`Teglato.exe`** (sem `.zip`) com publicação automática na Release e botão de download direto de 1 clique no `README.md`.
+
 ## [0.1.0] - 2026-11-27
 
 ### Adicionado
