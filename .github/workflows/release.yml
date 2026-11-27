@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  build-windows-portable:
     runs-on: windows-latest
     permissions:
       contents: write
@@ -33,20 +33,50 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Run TypeScript checks and unit tests
-        run: npm test && npm run typecheck
+      - name: Test, typecheck and build frontend
+        run: npm test && npm run typecheck && npm run build
 
       - name: Run Rust unit tests
         working-directory: src-tauri
-        run: cargo test
+        run: cargo test --features custom-protocol
 
-      - name: Build Tauri application
-        uses: tauri-apps/tauri-action@v0
+      - name: Build standalone portable executable
+        run: npm run build:portable
+
+      - name: Prepare release artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release-artifacts | Out-Null
+          Copy-Item "src-tauri/target/release/teglato.exe" "release-artifacts/Teglato.exe"
+          $hash = (Get-FileHash "release-artifacts/Teglato.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  Teglato.exe" | Set-Content -Encoding utf8 "release-artifacts/SHA256SUMS.txt"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Teglato-Windows-Portable
+          path: release-artifacts/
+
+      - name: Create Draft GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: 'Teglato v__VERSION__'
-          releaseBody: 'Download e execucao direta do Teglato para Windows.'
-          releaseDraft: true
+          draft: true
           prerelease: false
+          name: "Teglato ${{ github.ref_name }}"
+          body: |
+            ## Teglato — Executável Portátil para Windows 10/11
+
+            **Zero instalação necessária:**
+            1. Baixe o arquivo **`Teglato.exe`** abaixo.
+            2. Dê duplo clique para abrir (se o Windows exibir o aviso do SmartScreen por ser um app sem assinatura paga, clique em **Mais informações** → **Executar assim mesmo**).
+            3. O gatinho aparecerá automaticamente no canto inferior direito da tela!
+
+            - **Configurações e 13 pelagens:** ícone na Bandeja do Sistema ou `Ctrl + Shift + ,`
+            - **Travar / destravar posição:** `Ctrl + Shift + L`
+            - **OBS Studio (fundo transparente):** adicione uma *Fonte de Navegador* apontando para `http://127.0.0.1:3777/?obs=1`
+          files: |
+            release-artifacts/Teglato.exe
+            release-artifacts/SHA256SUMS.txt
