@@ -29,7 +29,7 @@ export class CatRenderer {
     const speed = 1 - Math.exp(-26 * safeDt);
     const sleep = state.sleepBlend;
 
-    // Alvo da pata esquerda da tela (pata direita do gato: mouse ou teclas esquerdas)
+    // Alvo da pata esquerda da tela (mão DIREITA do gato: mouse ou teclas direitas)
     let leftTarget: Point2D = { x: 194, y: 262 };
     let leftDesiredLift = 0;
 
@@ -38,22 +38,22 @@ export class CatRenderer {
     } else if (state.isPawHoldingMouse()) {
       leftTarget = desk.mouseTopPoint;
       leftDesiredLift = state.mouseButtons.left || state.mouseButtons.right ? 0 : 1;
-    } else if (state.activeLeftKey) {
-      const keyPoly = KEY_POLYGONS.get(state.activeLeftKey);
+    } else if (state.activeRightKey) {
+      const keyPoly = KEY_POLYGONS.get(state.activeRightKey);
       if (keyPoly) {
         leftTarget = { x: keyPoly.cx, y: keyPoly.cy };
         leftDesiredLift = 0;
       }
     }
 
-    // Alvo da pata direita da tela (pata esquerda do gato: teclas direitas ou alcance total)
+    // Alvo da pata direita da tela (mão ESQUERDA do gato: teclas esquerdas ou alcance total)
     let rightTarget: Point2D = { x: 296, y: 262 };
     let rightDesiredLift = 0;
 
     if (sleep > 0.5) {
       rightTarget = { x: 288, y: 256 };
-    } else if (state.activeRightKey) {
-      const keyPoly = KEY_POLYGONS.get(state.activeRightKey);
+    } else if (state.activeLeftKey) {
+      const keyPoly = KEY_POLYGONS.get(state.activeLeftKey);
       if (keyPoly) {
         rightTarget = { x: keyPoly.cx, y: keyPoly.cy };
         rightDesiredLift = 0;
@@ -77,10 +77,13 @@ export class CatRenderer {
     const slumpY = state.sleepBlend * 11;
 
     this.drawTail(ctx, state, coat, slumpY);
-    this.drawBody(ctx, coat, breathY, slumpY);
+    this.drawBody(ctx, coat, breathY, slumpY, true);
   }
 
-  /** Desenha a cabeça (com expressões) e as patas da frente (por cima da mesa/teclado). */
+  /**
+   * Desenha os braços fundidos continuamente ao tronco (sem recorte nos ombros),
+   * as patas sobre a mesa/teclado e a cabeça por cima.
+   */
   renderHeadAndPaws(
     ctx: CanvasRenderingContext2D,
     state: CatStateMachine,
@@ -90,29 +93,61 @@ export class CatRenderer {
     const breathY = Math.sin(state.breathPhase) * (1.5 + state.sleepBlend * 0.9);
     const slumpY = state.sleepBlend * 13;
 
-    this.drawHead(ctx, state, coat, breathY, slumpY);
+    const shoulderLeft: Point2D = { x: 209, y: 223 + breathY * 0.5 + slumpY * 0.65 };
+    const shoulderRight: Point2D = { x: 289, y: 223 + breathY * 0.5 + slumpY * 0.65 };
+    const leftActive = state.activeRightKey !== null || state.isPawHoldingMouse();
+    const rightActive = state.activeLeftKey !== null;
 
-    const shoulderLeft: Point2D = { x: 214, y: 216 + breathY * 0.5 + slumpY * 0.65 };
-    const shoulderRight: Point2D = { x: 284, y: 216 + breathY * 0.5 + slumpY * 0.65 };
-
-    this.drawArmAndPaw(
+    // Passo 1: sombra das patas + contorno externo dos braços
+    this.drawArmOutlineAndShadow(
       ctx,
       coat,
       shoulderLeft,
       this.leftPawPos,
       -1,
       this.leftPawLift,
-      state.activeLeftKey !== null || state.isPawHoldingMouse(),
+      leftActive,
     );
-    this.drawArmAndPaw(
+    this.drawArmOutlineAndShadow(
       ctx,
       coat,
       shoulderRight,
       this.rightPawPos,
       1,
       this.rightPawLift,
-      state.activeRightKey !== null,
+      rightActive,
     );
+
+    // Passo 2: preenche o tronco acima da mesa (y < 258) para esconder o contorno interno dos ombros
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, 480, 258);
+    ctx.clip();
+    this.drawBody(ctx, coat, breathY, slumpY, false);
+    ctx.restore();
+
+    // Passo 3: preenchimento contínuo dos braços + pontinhas das patas sem recorte
+    this.drawArmFillAndPawTip(
+      ctx,
+      coat,
+      shoulderLeft,
+      this.leftPawPos,
+      -1,
+      this.leftPawLift,
+      leftActive,
+    );
+    this.drawArmFillAndPawTip(
+      ctx,
+      coat,
+      shoulderRight,
+      this.rightPawPos,
+      1,
+      this.rightPawLift,
+      rightActive,
+    );
+
+    // Passo 4: cabeça por cima da junção do pescoço
+    this.drawHead(ctx, state, coat, breathY, slumpY);
   }
 
   private drawTail(
@@ -188,6 +223,7 @@ export class CatRenderer {
     coat: CoatDefinition,
     breathY: number,
     slumpY: number,
+    withOutline: boolean,
   ): void {
     const cx = 249;
     const topY = 186 + breathY * 0.4 + slumpY * 0.55;
@@ -264,10 +300,12 @@ export class CatRenderer {
 
     ctx.restore();
 
-    defineTorsoPath();
-    ctx.strokeStyle = coat.outlineColor;
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
+    if (withOutline) {
+      defineTorsoPath();
+      ctx.strokeStyle = coat.outlineColor;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
@@ -520,7 +558,25 @@ export class CatRenderer {
     }
   }
 
-  private drawArmAndPaw(
+  private computeArmGeometry(
+    shoulder: Point2D,
+    pawTip: Point2D,
+    sideSign: -1 | 1,
+    liftAmount: number,
+    isActive: boolean,
+  ): { liftedTip: Point2D; ctrl: Point2D } {
+    const liftedTip = {
+      x: pawTip.x,
+      y: pawTip.y - liftAmount * 3.5,
+    };
+    const ctrl = {
+      x: lerp(shoulder.x, liftedTip.x, 0.48) + sideSign * 10,
+      y: lerp(shoulder.y, liftedTip.y, 0.55) - (isActive ? 10 : 4),
+    };
+    return { liftedTip, ctrl };
+  }
+
+  private drawArmOutlineAndShadow(
     ctx: CanvasRenderingContext2D,
     coat: CoatDefinition,
     shoulder: Point2D,
@@ -529,22 +585,13 @@ export class CatRenderer {
     liftAmount: number,
     isActive: boolean,
   ): void {
-    const liftedTip = {
-      x: pawTip.x,
-      y: pawTip.y - liftAmount * 3.5,
-    };
-
-    const ctrl = {
-      x: lerp(shoulder.x, liftedTip.x, 0.48) + sideSign * 10,
-      y: lerp(shoulder.y, liftedTip.y, 0.55) - (isActive ? 10 : 4),
-    };
-
-    const armColor =
-      coat.pattern === 'calico'
-        ? sideSign === -1
-          ? coat.markingColor
-          : coat.baseColor
-        : coat.baseColor;
+    const { liftedTip, ctrl } = this.computeArmGeometry(
+      shoulder,
+      pawTip,
+      sideSign,
+      liftAmount,
+      isActive,
+    );
 
     ctx.save();
     ctx.lineCap = 'round';
@@ -557,7 +604,6 @@ export class CatRenderer {
       ctx.fill();
     }
 
-    // Contorno externo do braço
     ctx.strokeStyle = coat.outlineColor;
     ctx.lineWidth = 18.2;
     ctx.beginPath();
@@ -565,9 +611,42 @@ export class CatRenderer {
     ctx.quadraticCurveTo(ctrl.x, ctrl.y, liftedTip.x, liftedTip.y);
     ctx.stroke();
 
-    // Preenchimento do braço
+    ctx.restore();
+  }
+
+  private drawArmFillAndPawTip(
+    ctx: CanvasRenderingContext2D,
+    coat: CoatDefinition,
+    shoulder: Point2D,
+    pawTip: Point2D,
+    sideSign: -1 | 1,
+    liftAmount: number,
+    isActive: boolean,
+  ): void {
+    const { liftedTip, ctrl } = this.computeArmGeometry(
+      shoulder,
+      pawTip,
+      sideSign,
+      liftAmount,
+      isActive,
+    );
+
+    const armColor =
+      coat.pattern === 'calico'
+        ? sideSign === -1
+          ? coat.markingColor
+          : coat.baseColor
+        : coat.baseColor;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+
+    // Preenchimento contínuo do braço cobrindo a borda lateral do tronco na junção
     ctx.strokeStyle = armColor;
     ctx.lineWidth = 15.2;
+    ctx.beginPath();
+    ctx.moveTo(shoulder.x, shoulder.y);
+    ctx.quadraticCurveTo(ctrl.x, ctrl.y, liftedTip.x, liftedTip.y);
     ctx.stroke();
 
     // Pontinha da pata (meinha branca ou ponta escura siamesa)

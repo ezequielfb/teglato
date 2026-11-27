@@ -37,10 +37,15 @@ describe('keyMap', () => {
     expect(rects.size).toBe(63);
     const q = rects.get('KeyQ')!;
     const p = rects.get('KeyP')!;
+    const esc = rects.get('Escape')!;
+    const backspace = rects.get('Backspace')!;
     const space = rects.get('Space')!;
 
-    expect(q.cx).toBeLessThan(p.cx);
-    expect(q.cy).toBeLessThan(space.cy);
+    // Rotacionado 180° para o gato: lado esquerdo do gato (Q/Esc) fica à direita da tela,
+    // e a barra de espaço fica mais próxima do gato (topo) do que as letras.
+    expect(q.cx).toBeGreaterThan(p.cx);
+    expect(esc.cx).toBeGreaterThan(backspace.cx);
+    expect(space.cy).toBeLessThan(q.cy);
     expect(q.hand).toBe('left');
     expect(p.hand).toBe('right');
   });

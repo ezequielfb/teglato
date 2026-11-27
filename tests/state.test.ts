@@ -28,17 +28,23 @@ describe('CatStateMachine', () => {
     expect(state.activeRightKey).toBe('KeyL');
   });
 
-  it('suporta uso simultâneo de mouse e teclado mantendo uma pata no mouse', () => {
+  it('suporta uso simultâneo de mouse e teclado mantendo a pata direita do gato no mouse', () => {
     const state = new CatStateMachine();
 
     state.applyInput({ type: 'mouse_down', button: 'left' }, DEFAULT_CONFIG);
     expect(state.isPawHoldingMouse()).toBe(true);
 
-    // Pressionar WASD enquanto segura o mouse redireciona para a pata direita da tela
+    // Pressionar WASD (mão esquerda do gato) enquanto segura o mouse usa naturalmente a pata esquerda
     state.applyInput({ type: 'key_down', code: 'KeyW' }, DEFAULT_CONFIG);
     expect(state.isPawHoldingMouse()).toBe(true);
-    expect(state.activeLeftKey).toBeNull();
-    expect(state.activeRightKey).toBe('KeyW');
+    expect(state.activeRightKey).toBeNull();
+    expect(state.activeLeftKey).toBe('KeyW');
+
+    // Mesmo teclas da direita (KeyJ) são assumidas pela pata esquerda enquanto o botão do mouse estiver segurado
+    state.applyInput({ type: 'key_down', code: 'KeyJ' }, DEFAULT_CONFIG);
+    expect(state.isPawHoldingMouse()).toBe(true);
+    expect(state.activeRightKey).toBeNull();
+    expect(state.activeLeftKey).toBe('KeyJ');
   });
 
   it('entra em modo sono após inatividade e desperta chacoalhando a cabeça', () => {

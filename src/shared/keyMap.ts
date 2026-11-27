@@ -228,8 +228,9 @@ function projectBoardPoint(
 }
 
 /**
- * Calcula os polígonos e centros de todas as 63 teclas dentro de `bounds`.
- * Usado tanto pelo `deskRenderer` quanto pelo `catRenderer` para mirar a pata.
+ * Calcula os polígonos e centros de todas as 63 teclas dentro de `bounds`,
+ * rotacionadas em 180° (posição normal vista de frente para o gato: barra de espaço
+ * próxima ao peito, fileira numérica na frente, mão esquerda do gato à direita da tela).
  */
 export function computeKeyRects(bounds: BoardBounds): Map<string, KeyPolygon> {
   const result = new Map<string, KeyPolygon>();
@@ -242,10 +243,16 @@ export function computeKeyRects(bounds: BoardBounds): Map<string, KeyPolygon> {
     const v0 = item.row / TOTAL_ROWS + gapV;
     const v1 = (item.row + 1) / TOTAL_ROWS - gapV;
 
-    const tl = projectBoardPoint(bounds, u0, v0);
-    const tr = projectBoardPoint(bounds, u1, v0);
-    const br = projectBoardPoint(bounds, u1, v1);
-    const bl = projectBoardPoint(bounds, u0, v1);
+    // Espelha horizontal e verticalmente (rotação de 180° na perspectiva do gato)
+    const uMin = 1 - u1;
+    const uMax = 1 - u0;
+    const vMin = 1 - v1;
+    const vMax = 1 - v0;
+
+    const tl = projectBoardPoint(bounds, uMin, vMin);
+    const tr = projectBoardPoint(bounds, uMax, vMin);
+    const br = projectBoardPoint(bounds, uMax, vMax);
+    const bl = projectBoardPoint(bounds, uMin, vMax);
 
     const cx = (tl.x + tr.x + br.x + bl.x) * 0.25;
     const cy = (tl.y + tr.y + br.y + bl.y) * 0.25;

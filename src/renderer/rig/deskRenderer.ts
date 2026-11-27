@@ -31,14 +31,15 @@ export interface DeskGeometry {
 }
 
 /**
- * Calcula a posição atual do mini mouse na mesa a partir da posição normalizada (0..1).
+ * Calcula a posição atual do mini mouse na mesa a partir da posição normalizada (0..1),
+ * espelhando o movimento para a perspectiva do gato (180°).
  */
 export function getMouseGeometry(state: CatStateMachine): DeskGeometry {
-  const mx = MOUSE_PAD_AREA.cx + (state.mousePos.x - 0.5) * 2 * MOUSE_PAD_AREA.rangeX;
-  const my = MOUSE_PAD_AREA.cy + (state.mousePos.y - 0.5) * 2 * MOUSE_PAD_AREA.rangeY;
+  const mx = MOUSE_PAD_AREA.cx + (0.5 - state.mousePos.x) * 2 * MOUSE_PAD_AREA.rangeX;
+  const my = MOUSE_PAD_AREA.cy + (0.5 - state.mousePos.y) * 2 * MOUSE_PAD_AREA.rangeY;
   return {
     mouseCenter: { x: mx, y: my },
-    mouseTopPoint: { x: mx + 1, y: my - 4 },
+    mouseTopPoint: { x: mx + 1, y: my - 3 },
   };
 }
 
@@ -110,7 +111,7 @@ function drawMiniMouse(
 
   ctx.save();
   ctx.translate(center.x, center.y + pressOffset);
-  ctx.rotate(-0.08);
+  ctx.rotate(0.08);
 
   // Sombra do mouse
   ctx.fillStyle = 'rgba(0, 0, 0, 0.34)';
@@ -130,33 +131,35 @@ function drawMiniMouse(
   ctx.ellipse(0, -1, 14, 9.5, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Destaque nos botões quando clicados
+  // Botões na parte frontal (inferior da tela, apontando para longe do gato)
+  // Botão esquerdo (indicador direito do gato = lado interno próximo ao teclado, x > 0)
   if (buttons.left) {
     ctx.fillStyle = '#f8cb4b';
     ctx.beginPath();
-    ctx.ellipse(-4.5, -4, 6.5, 4.2, -0.1, Math.PI, Math.PI * 2);
+    ctx.ellipse(4.5, 2.2, 6.5, 4.2, -0.1, 0, Math.PI);
     ctx.fill();
   }
+  // Botão direito (dedo médio direito do gato = lado externo, x < 0)
   if (buttons.right) {
     ctx.fillStyle = '#f8cb4b';
     ctx.beginPath();
-    ctx.ellipse(4.5, -4, 6.5, 4.2, 0.1, Math.PI, Math.PI * 2);
+    ctx.ellipse(-4.5, 2.2, 6.5, 4.2, 0.1, 0, Math.PI);
     ctx.fill();
   }
 
-  // Divisória dos botões e rodinha (scroll wheel)
+  // Divisória dos botões e rodinha (scroll wheel) voltados para a frente
   ctx.strokeStyle = '#cfd3dc';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(-12.5, -2.5);
-  ctx.quadraticCurveTo(0, -1, 12.5, -2.5);
-  ctx.moveTo(0, -10.2);
-  ctx.lineTo(0, -1.5);
+  ctx.moveTo(-12.5, 0.5);
+  ctx.quadraticCurveTo(0, 2, 12.5, 0.5);
+  ctx.moveTo(0, 1.5);
+  ctx.lineTo(0, 8.8);
   ctx.stroke();
 
   ctx.fillStyle = '#535866';
   ctx.beginPath();
-  ctx.roundRect(-1.4, -7.8, 2.8, 4.6, 1.2);
+  ctx.roundRect(-1.4, 3.4, 2.8, 4.4, 1.2);
   ctx.fill();
 
   ctx.restore();

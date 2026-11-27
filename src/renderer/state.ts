@@ -34,7 +34,11 @@ export class CatStateMachine {
   readonly pressedKeys = new Map<string, number>();
   private keySequence = 0;
 
-  /** Última tecla ativa atribuída a cada mão visual (left = lado esquerdo da tela). */
+  /**
+   * Última tecla ativa atribuída a cada mão do gato:
+   * - `activeLeftKey`: mão ESQUERDA do gato (lado direito da tela)
+   * - `activeRightKey`: mão DIREITA do gato (lado esquerdo da tela, mesma pata do mouse)
+   */
   activeLeftKey: string | null = null;
   activeRightKey: string | null = null;
 
@@ -210,14 +214,16 @@ export class CatStateMachine {
 
     if (this.isPawHoldingMouse()) {
       targetTilt -= 0.045;
-      targetGazeX = (this.mousePos.x - 0.5) * 0.65 - 0.25;
-      targetGazeY = (this.mousePos.y - 0.5) * 0.45 + 0.15;
+      targetGazeX = (0.5 - this.mousePos.x) * 0.65 - 0.25;
+      targetGazeY = (0.5 - this.mousePos.y) * 0.45 + 0.15;
     }
-    if (this.activeRightKey) {
+    if (this.activeLeftKey) {
+      // Mão esquerda do gato (lado direito da tela)
       targetTilt += 0.04;
       targetGazeX += 0.28;
       targetGazeY += 0.2;
-    } else if (this.activeLeftKey) {
+    } else if (this.activeRightKey) {
+      // Mão direita do gato (lado esquerdo da tela)
       targetTilt -= 0.035;
       targetGazeX -= 0.15;
       targetGazeY += 0.2;
@@ -230,8 +236,8 @@ export class CatStateMachine {
   }
 
   /**
-   * Indica se a pata esquerda (da tela) deve segurar o mini mouse neste frame.
-   * Quando o usuário pressiona teclas dos dois lados sem clicar no mouse, a pata solta o mouse.
+   * Indica se a pata direita do gato (lado esquerdo da tela) deve segurar o mini mouse.
+   * Se alguma tecla for atribuída à pata direita sem botão do mouse pressionado, ela solta o mouse.
    */
   isPawHoldingMouse(): boolean {
     if (this.mouseButtons.left || this.mouseButtons.right || this.mouseButtons.middle) {
@@ -240,13 +246,12 @@ export class CatStateMachine {
     if (this.mouseActiveTimer <= 0) {
       return false;
     }
-    // Se existe alguma tecla atribuída à pata esquerda, ela já soltou o mouse para digitar com duas mãos.
-    return this.activeLeftKey === null;
+    return this.activeRightKey === null;
   }
 
   /**
-   * Decide qual pata (esquerda ou direita da tela) alcança a tecla recém-pressionada.
-   * Reproduz o comportamento do vídeo: se uma pata segura o mouse, a outra alcança o teclado inteiro.
+   * Decide qual pata do gato (esquerda = direita da tela, direita = esquerda da tela)
+   * alcança a tecla recém-pressionada.
    */
   private rebalancePaws(code: string, preferredHand: HandSide): void {
     const mouseHeldByButton =
@@ -254,19 +259,19 @@ export class CatStateMachine {
     const mouseRecentlyMoved = this.mouseActiveTimer > 0;
 
     if (mouseHeldByButton) {
-      this.activeLeftKey = null;
-      this.activeRightKey = code;
+      this.activeRightKey = null;
+      this.activeLeftKey = code;
       return;
     }
 
-    if (mouseRecentlyMoved && preferredHand === 'right') {
-      this.activeRightKey = code;
+    if (mouseRecentlyMoved && preferredHand === 'left') {
+      this.activeLeftKey = code;
       return;
     }
 
-    if (mouseRecentlyMoved && this.activeRightKey === null && this.pressedKeys.size === 1) {
-      // Uso híbrido: segurando/movendo o mouse e apertando um atalho (ex.: WASD) com uma mão só
-      this.activeRightKey = code;
+    if (mouseRecentlyMoved && this.activeLeftKey === null && this.pressedKeys.size === 1) {
+      // Uso híbrido: mantendo a pata direita no mouse enquanto a esquerda digita atalhos
+      this.activeLeftKey = code;
       return;
     }
 
