@@ -1,54 +1,97 @@
 # Teglato
 
-Um gatinho reativo de área de trabalho inspirado no **LittleOne (小只)** — leve, 100% vetorial, com janela transparente sempre no topo (*always-on-top*), interface completamente limpa e integração nativa com **OBS Studio**.
+[![CI](https://github.com/ezequielfb/teglato/actions/workflows/ci.yml/badge.svg)](https://github.com/ezequielfb/teglato/actions/workflows/ci.yml)
+[![Release Build](https://github.com/ezequielfb/teglato/actions/workflows/release.yml/badge.svg)](https://github.com/ezequielfb/teglato/actions/workflows/release.yml)
+![Windows 10/11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D6)
+[![License: MIT](https://img.shields.io/badge/License-MIT-f5be41.svg)](LICENSE)
 
-> [!NOTE]
-> **Status do Projeto:** Implementado (`v0.1.0`). Frontend (Canvas 2D + 13 pelagens + janela separada de configurações + áudio sintetizado + testes unitários) e backend nativo em Rust/Tauri v2 (hook global, bandeja do sistema, atalhos globais e servidor OBS) concluídos e verificados por testes automatizados.
-
----
-
-## Principais Funcionalidades
-
-- **Arte 100% Vetorial Procedural (Canvas 2D):** Visual fiel ao original, com proporções limpas, cauda fluida, inclinação sutil da cabeça/olhos e cinemática inversa 2D suave nas patas para alcançar cada tecla com naturalidade a 60 FPS — sem depender de dezenas de *sprites* pesados.
-- **13 Pelagens Incluídas:** Troca instantânea entre todas as pelagens clássicas já liberadas desde o início:
-  `Tuxedo` (Frajola), `Orange tabby`, `Brown tabby`, `Calico`, `Siamese`, `Black`, `White`, `Blue gray`, `Gray & white`, `Orange & white`, `Tortoiseshell`, `Cream` e `Silver`.
-- **Sincronia em Tempo Real de Teclado e Mouse:**
-  - Cada tecla física pressionada acende e abaixa na tecla exata do mini teclado em perspectiva, enquanto a pata correspondente (esquerda ou direita) estica até aquela coordenada.
-  - Teclados em outros layouts (como **ABNT2 / PT-BR**) e *numpads* são mapeados automaticamente para a tecla física equivalente na grade compacta original de 5 fileiras (63 teclas), garantindo que nenhuma tecla fique sem resposta.
-  - Suporte completo a **uso simultâneo** de mouse + teclado (uma pata segura e desliza o mini mouse enquanto a outra digita normalmente).
-- **Ciclo de Vida, Sono e Despertar:** Piscadas naturais em intervalos aleatórios, balanço contínuo da cauda, modo sono após inatividade (olhos fechados, cauda apoiada na mesa e partículas `"Zzz"`) e animação de chacoalhar a cabeça ao acordar com o primeiro toque.
-- **Overlay Limpo Sempre no Topo:** Janela sem bordas (`frameless`), fundo transparente real e *Always on Top* sobre outros aplicativos e jogos em modo janela/borderless. Possui *click-through* automático nas áreas transparentes e modo **Travar Posição** (*click-through* total sobre o gato inteiro). Zero botões, barras ou menus sobre a janela do pet.
-- **Configurações Discretas:** Uma janela de configurações separada abre exclusivamente pelo ícone na **Bandeja do Sistema (System Tray)** ou por atalhos globais:
-  - `Ctrl + Shift + ,` — Abrir / fechar a janela de configurações.
-  - `Ctrl + Shift + L` — Travar / destravar posição da janela do gato (*click-through* total).
-- **Integração Nativa com OBS Studio:** Servidor local embutido (`http://127.0.0.1:3777/?obs=1`) para adicionar como **Fonte de Navegador (*Browser Source*)** no OBS com canal Alpha 100% transparente e nítido, independente da posição do gato na sua tela (além de opção de fundo *Chroma Key* como alternativa).
-- **Efeitos Sonoros Opcionais:** Motor de áudio sintetizado via Web Audio API (cliques suaves de teclado, clique de mouse e ronronar leve ao dormir), sem arquivos externos e com controle de volume e *mute*.
-- **Privacidade por Padrão:** O hook global lê apenas o código físico da tecla (*keycode*) e a posição relativa do cursor para animar as patas. Nenhum texto digitado, senha ou dado pessoal é armazenado ou enviado pela rede.
+Um gatinho reativo para a área de trabalho inspirado no **LittleOne (小只)** — leve, 100% vetorial, transparente, sempre no topo sobre jogos e aplicativos, e pronto para usar no **OBS Studio** sem precisar instalar nada.
 
 ---
 
-## Por que Tauri v2 (Rust + TypeScript)?
+## Baixar e Rodar (Sem Instalação)
 
-Como o objetivo principal do **Teglato** é gerar um executável leve ("baixou, rodou") para qualquer pessoa — inclusive usuários leigos — mantendo baixo consumo em segundo plano e alta facilidade de modificação para contribuidores, a arquitetura adotada é **Tauri v2** (núcleo nativo em **Rust** + interface e renderização em **TypeScript / HTML5 Canvas 2D**).
+Qualquer pessoa pode baixar e executar diretamente no **Windows 10 ou Windows 11**, sem precisar instalar Node.js, Rust ou qualquer dependência:
 
-| Critério | Tauri v2 (Rust + TS) | Electron (Node + Chromium) | C# / .NET (WPF / WinUI) | Godot Engine |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tamanho final para baixar** | Leve (binário nativo + WebView2) | ~120+ MB | ~65–80 MB (self-contained) | ~40–70 MB |
-| **Consumo de RAM em uso** | ~35–60 MB | ~180–300 MB | ~50–90 MB | ~80–140 MB |
-| **Pré-requisitos no Windows 10/11** | Zero (WebView2 já vem nativo) | Zero | Zero (se empacotado) | Zero |
-| **Reúso direto no OBS (Browser Source)** | 100% (mesmo código Canvas 2D) | 100% (mesmo código Canvas 2D) | Exige reescrever cena em Web | Exige export Web separado |
-| **Multiplataforma** | Windows, macOS e Linux | Windows, macOS e Linux | Foco em Windows | Windows, macOS e Linux |
-| **Facilidade para contribuidores** | Alta (90% do projeto em TS/Canvas) | Alta | Média (C# + XAML) | Média (GDScript + cenas binárias) |
+1. Acesse a página de [**Releases**](https://github.com/ezequielfb/teglato/releases/latest) e baixe **`Teglato.exe`** (arquivo único portátil).
+2. Dê duplo clique em **`Teglato.exe`** — o gatinho já abre posicionado no canto inferior direito da tela, logo acima da barra de tarefas, e memoriza onde você deixá-lo ao fechar.
+3. Pronto! A janela do gato é **100% limpa** (sem botões ou molduras) e os cliques nas áreas transparentes atravessam direto para os programas de trás.
 
 ---
 
-## Arquitetura e Estrutura do Repositório
+## Controles e Atalhos
 
-### Fluxo de Dados
+| Ação | Como fazer |
+| :--- | :--- |
+| **Mover o gato pela tela** | Clique e arraste sobre o gato ou a mesinha (quando destravado) |
+| **Abrir Configurações e trocar pelagem** | Clique no ícone do **Teglato** perto do relógio (Bandeja do Windows) ou pressione `Ctrl + Shift + ,` |
+| **Travar / destravar posição (*Click-Through* total)** | Pressione `Ctrl + Shift + L` ou marque **Travar Posição** na Bandeja |
+| **Resetar posição padrão** | Botão **Resetar Posição** nas Configurações ou na Bandeja |
+| **Fechar o aplicativo** | Clique com o botão direito no ícone da Bandeja → **Sair** |
+
+---
+
+## Usar no OBS Studio (Fundo Transparente)
+
+O **Teglato** já embute um servidor local exclusivo para captura cristalina no OBS:
+
+1. No OBS Studio, clique em **+** (Fontes) → **Navegador (*Browser Source*)**.
+2. Em **URL**, cole:
+   ```text
+   http://127.0.0.1:3777/?obs=1
+   ```
+3. Defina largura e altura na proporção **4:3** (ex.: `480` × `360` ou `800` × `600`).
+
+> [!TIP]
+> A cena no OBS entra com **canal Alpha 100% transparente** automaticamente (sem precisar de *Chroma Key*), acompanha a troca de pelagens em tempo real e continua funcionando mesmo se você mover ou travar o gato na sua tela.
+
+---
+
+## Destaques
+
+- **13 pelagens incluídas desde o início:** `Tuxedo` (Frajola), `Orange tabby`, `Brown tabby`, `Calico`, `Siamese`, `Black`, `White`, `Blue gray`, `Gray & white`, `Orange & white`, `Tortoiseshell`, `Cream` e `Silver`.
+- **Digitação e mouse fiéis ao original:** Cada tecla física acende e abaixa na tecla equivalente do mini teclado em perspectiva (com suporte a teclados ABNT2/PT-BR e *numpad*), enquanto a pata esquerda do gato digita livremente sem soltar o mouse durante o uso simultâneo.
+- **Vida própria:** Piscadas aleatórias, cauda balançando, modo sono após inatividade configurável (`Zzz`) e chacoalhada na cabeça ao acordar.
+- **Áudio opcional:** Cliques suaves de teclado/mouse e ronronar sintetizados via Web Audio API (desativado por padrão; configurável em `Ctrl + Shift + ,`).
+
+---
+
+## Dúvidas Comuns (FAQ)
+
+<details>
+<summary><strong>O Windows mostrou um aviso azul ("O Windows protegeu o computador" / SmartScreen). É seguro?</strong></summary>
+
+Sim. Esse aviso aparece em qualquer executável independente que ainda não possui um certificado pago de assinatura digital (*Code Signing*). Para abrir, clique em **Mais informações** → **Executar assim mesmo**. Se quiser confirmar a integridade do arquivo baixado, compare o hash SHA-256 com o arquivo `SHA256SUMS.txt` publicado na mesma release:
+
+```powershell
+Get-FileHash .\Teglato.exe -Algorithm SHA256
+```
+
+</details>
+
+<details>
+<summary><strong>O aplicativo lê ou envia o que eu digito (senhas, mensagens)?</strong></summary>
+
+**Não.** O hook global do Windows captura apenas o código físico da tecla (para saber qual tecla acender no tecladinho) e a posição relativa do cursor. Nenhum texto, senha ou dado é gravado em disco ou enviado para a internet — inclusive o servidor do OBS escuta estritamente em `127.0.0.1` (local).
+
+</details>
+
+<details>
+<summary><strong>Como desinstalar?</strong></summary>
+
+Como o `Teglato.exe` é portátil, basta fechá-lo pela Bandeja do Sistema e apagar o arquivo `.exe` (se quiser remover também suas preferências salvas, apague a pasta `%AppData%\com.teglato.app`).
+
+</details>
+
+---
+
+## Para Desenvolvedores e Contribuidores
+
+O projeto usa **Tauri v2 (Rust + TypeScript / HTML5 Canvas 2D)** para unir executável pequeno, baixo uso de memória (~35–60 MB RAM) e manutenção simples — cerca de **90% do código visual, pelagens, animações e áudio está em TypeScript**.
 
 ```mermaid
 flowchart LR
-    OS["Teclado e Mouse Globais do Sistema"] --> Hook["Nucleo Rust (Global Input Hook)"]
+    OS["Teclado e Mouse Globais do Sistema"] --> Hook["Nucleo Rust (WH_KEYBOARD_LL / WH_MOUSE_LL)"]
     Hook --> Overlay["Janela Overlay (Limpa, Transparente, Always-on-Top)"]
     Hook --> WS["Servidor Local HTTP e WebSocket (127.0.0.1:3777)"]
     WS --> OBS["OBS Studio (Browser Source com Alpha Puro)"]
@@ -57,136 +100,46 @@ flowchart LR
     Settings --> WS
 ```
 
-### Estrutura de Pastas
+### Estrutura Enxuta
 
 ```text
 teglato/
-├── .github/workflows/
-│   └── release.yml              # Build e release automatizados no Windows via GitHub Actions
-├── package.json                 # Dependências do frontend e scripts de build/teste
-├── tsconfig.json                # Configuração estrita do TypeScript
-├── vite.config.ts               # Build multi-página (overlay.html + settings.html)
-├── vitest.config.ts             # Configuração da suíte de testes unitários
-├── scripts/
-│   └── generate-icons.mjs       # Gerador de ícones PNG/ICO sem dependências externas
-├── tests/                       # Testes unitários (keyMap, 13 pelagens e CatStateMachine)
-├── src/                         # Frontend TypeScript + Canvas 2D
-│   ├── shared/
-│   │   ├── types.ts             # Tipos compartilhados (AppConfig, InputEvent, CoatId)
-│   │   └── keyMap.ts            # Grade compacta de 63 teclas + fallbacks ABNT2/numpad
-│   └── renderer/
-│       ├── overlay.html         # Cena 100% limpa (Desktop Overlay e OBS Browser Source)
-│       ├── overlay.ts           # Loop 60 FPS, máquina de estados e ponte Tauri / WebSocket
-│       ├── settings.html        # Janela separada de configurações (Tray / Atalho)
-│       ├── settings.ts          # Seletor das 13 pelagens, escala, áudio, OBS e atalhos
-│       ├── state.ts             # Máquina de estados pura (patas, mouse, piscada e sono)
-│       ├── styles/
-│       │   ├── overlay.css      # Estilos limpos com fundo transparente
-│       │   └── settings.css     # Tema escuro da janela de configurações
-│       ├── audio/
-│       │   └── soundEngine.ts   # Síntese Web Audio API opcional (teclas, mouse, ronronar)
-│       └── rig/
-│           ├── coats.ts         # Definições visuais das 13 pelagens
-│           ├── deskRenderer.ts  # Desk mat, mini mouse móvel e teclado em perspectiva
-│           ├── catRenderer.ts   # Corpo, cabeça, olhos, cauda e patas com IK suave
-│           └── particles.ts     # Partículas "Zzz" do modo sono
-└── src-tauri/                   # Camada nativa em Rust (Tauri v2)
-    ├── Cargo.toml               # Crates nativas (tauri, axum, rust-embed, arboard, windows)
-    ├── build.rs                 # Script de build Tauri
-    ├── tauri.conf.json          # Permissões, janela transparente e empacotamento NSIS/MSI
-    ├── capabilities/
-    │   └── default.json         # Permissões granulares para overlay e settings
-    ├── icons/                   # Ícones 32x32, 128x128, 256x256 e icon.ico
-    └── src/
-        ├── main.rs              # Ponto de entrada do executável Windows
-        ├── lib.rs               # Gerenciamento das janelas Overlay/Settings e atalhos
-        ├── input_hook.rs        # Hook global Win32 (WH_KEYBOARD_LL/WH_MOUSE_LL) + click-through
-        ├── obs_server.rs        # Servidor HTTP + WebSocket local embutido (127.0.0.1:3777)
-        ├── store.rs             # Persistência local e sanitização de config.json
-        └── tray.rs              # Ícone na bandeja do sistema e menu rápido
+├── .github/workflows/    # CI (testes) e Release (gera Teglato.exe portátil)
+├── src/
+│   ├── shared/           # Tipos (AppConfig, InputEvent) e mapa de 63 teclas + ABNT2
+│   └── renderer/         # Canvas 2D, 13 pelagens, estado das patas, áudio e janela Settings
+├── src-tauri/            # Backend nativo Rust (hook global, tray, atalhos, OBS server e store)
+├── tests/                # Testes unitários Vitest (teclado, pelagens e máquina de estados)
+├── CONTRIBUTING.md       # Guia rápido para modificar ou adicionar pelagens
+├── CHANGELOG.md          # Histórico de versões
+└── LICENSE               # Licença MIT
 ```
 
----
-
-## Como Usar (Usuário Final)
-
-1. **Baixar e Executar:** Baixe o executável ou instalador na página de *Releases* e abra normalmente — não exige instalação de runtimes extras no Windows 10/11.
-2. **Posicionar e Travar:** Arraste o gato para o canto desejado da tela. Use `Ctrl + Shift + L` (ou o menu na Bandeja do Sistema) para travar a posição e ativar o *click-through* total sobre ele.
-3. **Abrir Configurações:** Clique no ícone do **Teglato** perto do relógio do Windows (*System Tray*) ou pressione `Ctrl + Shift + ,` para trocar entre as 13 pelagens, ajustar escala, tempo de sono e áudio.
-4. **Usar no OBS Studio (Transparência Perfeita):**
-   - No OBS, clique em **+ (Adicionar Fonte)** → **Navegador (*Browser Source*)**.
-   - Informe a URL `http://127.0.0.1:3777/?obs=1`.
-   - O fundo já entra 100% transparente por canal Alpha, sem precisar configurar *Chroma Key*.
-
----
-
-## Desenvolvimento, Testes e Build (Contribuidores)
-
-### Pré-requisitos
-
-- **Node.js** (v20+ recomendado) e **npm**.
-- **Rust** (`rustup` / `cargo`).
-- **Para gerar os instaladores oficiais MSVC no Windows (`.exe` / `.msi` / NSIS):** **Microsoft Visual Studio 2022 C++ Build Tools** (workload *Desenvolvimento para desktop com C++*). Você pode instalá-lo em um PowerShell aberto **como Administrador**:
-
-```powershell
-winget install --id Microsoft.VisualStudio.2022.BuildTools -e --override "--wait --passive --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended" --accept-source-agreements --accept-package-agreements
-```
-
-### Pré-visualização Rápida no Navegador
-
-Você pode testar toda a animação do gato, teclado, mouse, pelagens e configurações direto no navegador (sem precisar compilar o Rust):
+### Comandos Rápidos
 
 ```bash
+# Instalar dependências do frontend
 npm install
+
+# Pré-visualizar a cena e configurações direto no navegador (sem precisar de Rust)
 npm run dev
+
+# Rodar testes e checagem de tipos
+npm test && npm run typecheck
+
+# Rodar testes do backend Rust
+npm run build && cd src-tauri && cargo test --features custom-protocol
+
+# Gerar executável único portátil local (requer Rust + VS C++ Build Tools no Windows)
+npm run build:portable
 ```
 
-- Cena do gato: `http://127.0.0.1:1420/overlay.html`
-- Tela de configurações: `http://127.0.0.1:1420/settings.html`
-
-### Testes Automatizados e Verificação
-
-```bash
-# Testes unitários do frontend (keyMap, 13 pelagens e máquina de estados)
-npm test
-
-# Verificação estrita de tipos TypeScript
-npm run typecheck
-
-# Build de produção do frontend (gera dist/)
-npm run build
-
-# Testes unitários do backend Rust (mapeamento Win32 VK e persistência)
-cd src-tauri && cargo test
-```
-
-### Build do Executável Final e Instaladores
-
-```bash
-# Gera o binário nativo e instaladores NSIS/MSI (requer MSVC C++ Build Tools no Windows)
-npm run tauri build
-```
-
-> [!TIP]
-> Também há um workflow pronto em [release.yml](file:///d:/teglato/.github/workflows/release.yml) para compilar e publicar os instaladores Windows automaticamente no **GitHub Actions** ao enviar uma tag `v*` (ex.: `git tag v0.1.0 && git push origin v0.1.0`).
-
-### Guia Rápido de Manutenibilidade
-
-Quem quiser customizar ou estender o **Teglato** raramente precisará alterar código Rust:
-
-- **Adicionar novas pelagens:** Edite apenas `src/renderer/rig/coats.ts` (e o tipo `CoatId` em `src/shared/types.ts`).
-- **Ajustar proporções, expressões ou animações:** Edite `src/renderer/rig/catRenderer.ts`, `src/renderer/state.ts` e `src/renderer/rig/particles.ts`.
-- **Modificar teclado, mouse ou mesa:** Edite `src/renderer/rig/deskRenderer.ts` e `src/shared/keyMap.ts`.
-- **Alterar efeitos sonoros:** Edite `src/renderer/audio/soundEngine.ts`.
-- **Alterar a tela de configurações:** Edite `src/renderer/settings.html`, `src/renderer/settings.ts` e `src/renderer/styles/settings.css`.
+Quer adicionar novas pelagens, ajustar animações ou enviar melhorias? Veja o guia em [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-## Roadmap
+## Documentação Relacionada
 
-- [x] Definição de escopo, arquitetura (**Tauri v2**) e documentação inicial (`README.md`)
-- [x] **Fase 1:** Estrutura base Tauri v2, ícones, CI e janela overlay transparente *always-on-top*
-- [x] **Fase 2:** Hook global Win32 em Rust + *click-through* dinâmico + servidor HTTP/WebSocket local para OBS Studio (`127.0.0.1:3777`)
-- [x] **Fase 3:** Rig vetorial fiel ao *LittleOne* (mesa, mouse, teclado compacto de 63 teclas, patas com IK suave, 13 pelagens, sono e despertar)
-- [x] **Fase 4:** Janela de configurações separada (Tray / Atalho) e motor de áudio sintetizado opcional
-- [x] **Fase 5:** Testes unitários (TypeScript + Rust), build de verificação e documentação final (`v0.1.0`)
+- [Guia de Contribuição](CONTRIBUTING.md)
+- [Histórico de Alterações (Changelog)](CHANGELOG.md)
+- [Licença (MIT)](LICENSE)
