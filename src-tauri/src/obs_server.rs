@@ -88,17 +88,22 @@ async fn ws_handler(
 }
 
 async fn handle_ws_client(mut socket: WebSocket, state: ServerState) {
-    // Envia instantaneamente a configuração atual ao conectar (pelagem, tempo de sono, etc.)
-    if let Some(shared) = state.app.try_state::<SharedState>() {
-        if let Ok(cfg) = shared.config.lock() {
-            if let Ok(snapshot) = serde_json::to_string(&serde_json::json!({
+    // Clona o snapshot e solta o MutexGuard antes de qualquer `.await` para manter Future `Send`.
+    let initial_snapshot = state
+        .app
+        .try_state::<SharedState>()
+        .and_then(|shared| {
+            let cfg = shared.config.lock().ok()?;
+            serde_json::to_string(&serde_json::json!({
                 "kind": "config",
                 "config": *cfg,
-            })) {
-                if socket.send(Message::Text(snapshot)).await.is_err() {
-                    return;
-                }
-            }
+            }))
+            .ok()
+        });
+
+    if let Some(snapshot) = initial_snapshot {
+        if socket.send(Message::Text(snapshot)).await.is_err() {
+            return;
         }
     }
 
