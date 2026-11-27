@@ -13,9 +13,15 @@ Um gatinho reativo para a área de trabalho inspirado no **LittleOne (小只)** 
 
 Qualquer pessoa pode baixar e executar diretamente no **Windows 10 ou Windows 11**, sem precisar instalar Node.js, Rust ou qualquer dependência:
 
-1. Acesse a página de [**Releases**](https://github.com/ezequielfb/teglato/releases/latest) e baixe **`Teglato.exe`** (arquivo único portátil).
+[![Baixar Teglato.exe](https://img.shields.io/badge/Baixar_Direto-Teglato.exe_(1_clique)-f5be41?style=for-the-badge&logo=windows&logoColor=14151a)](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato.exe)
+[![Baixar Teglato-Windows.zip](https://img.shields.io/badge/Baixar_ZIP-Teglato--Windows.zip-232631?style=for-the-badge&logo=files&logoColor=white)](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato-Windows.zip)
+
+1. Clique em [**Baixar Teglato.exe**](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato.exe) (ou em [**Teglato-Windows.zip**](https://github.com/ezequielfb/teglato/releases/latest/download/Teglato-Windows.zip), que traz só o programa + `LEIA-ME.txt`).
 2. Dê duplo clique em **`Teglato.exe`** — o gatinho já abre posicionado no canto inferior direito da tela, logo acima da barra de tarefas, e memoriza onde você deixá-lo ao fechar.
 3. Pronto! A janela do gato é **100% limpa** (sem botões ou molduras) e os cliques nas áreas transparentes atravessam direto para os programas de trás.
+
+> [!NOTE]
+> Se abrir a página de [**Releases**](https://github.com/ezequielfb/teglato/releases/latest), baixe **`Teglato.exe`** ou **`Teglato-Windows.zip`**. Os arquivos `Source code (zip)` / `Source code (tar.gz)` são gerados automaticamente pelo GitHub apenas para quem programa.
 
 ---
 

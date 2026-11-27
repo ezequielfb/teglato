@@ -46,10 +46,37 @@ jobs:
       - name: Prepare release artifacts
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force portable-pkg | Out-Null
           New-Item -ItemType Directory -Force release-artifacts | Out-Null
+
+          Copy-Item "src-tauri/target/release/teglato.exe" "portable-pkg/Teglato.exe"
           Copy-Item "src-tauri/target/release/teglato.exe" "release-artifacts/Teglato.exe"
-          $hash = (Get-FileHash "release-artifacts/Teglato.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  Teglato.exe" | Set-Content -Encoding utf8 "release-artifacts/SHA256SUMS.txt"
+
+          @"
+          Teglato - Gatinho Reativo de Area de Trabalho (Windows 10/11)
+
+          COMO USAR:
+          1. De duplo clique em Teglato.exe (nao precisa instalar nada).
+          2. O gatinho aparece automaticamente no canto inferior direito da tela.
+          3. Arraste o gato para mover pela tela.
+
+          ATALHOS E CONTROLES:
+          - Bandeja do Sistema (perto do relogio) ou Ctrl + Shift + , : Configuracoes e 13 pelagens
+          - Ctrl + Shift + L : Travar / destravar posicao (cliques atravessam o gato)
+          - OBS Studio (Fonte de Navegador com fundo transparente): http://127.0.0.1:3777/?obs=1
+
+          Obs.: Se o Windows SmartScreen mostrar o aviso azul de app sem certificado pago,
+          clique em "Mais informacoes" -> "Executar assim mesmo".
+          "@ | Set-Content -Encoding utf8 "portable-pkg/LEIA-ME.txt"
+
+          Compress-Archive -Path "portable-pkg/*" -DestinationPath "release-artifacts/Teglato-Windows.zip" -Force
+
+          $exeHash = (Get-FileHash "release-artifacts/Teglato.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          $zipHash = (Get-FileHash "release-artifacts/Teglato-Windows.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            "$exeHash  Teglato.exe",
+            "$zipHash  Teglato-Windows.zip"
+          ) | Set-Content -Encoding utf8 "release-artifacts/SHA256SUMS.txt"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
@@ -57,26 +84,30 @@ jobs:
           name: Teglato-Windows-Portable
           path: release-artifacts/
 
-      - name: Create Draft GitHub Release
+      - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          draft: true
+          draft: false
           prerelease: false
+          make_latest: true
           name: "Teglato ${{ github.ref_name }}"
           body: |
-            ## Teglato — Executável Portátil para Windows 10/11
+            ## Baixar e Rodar (Sem Instalação — Windows 10/11)
 
-            **Zero instalação necessária:**
-            1. Baixe o arquivo **`Teglato.exe`** abaixo.
-            2. Dê duplo clique para abrir (se o Windows exibir o aviso do SmartScreen por ser um app sem assinatura paga, clique em **Mais informações** → **Executar assim mesmo**).
-            3. O gatinho aparecerá automaticamente no canto inferior direito da tela!
+            Escolha **um** dos dois arquivos abaixo (ignore os itens `Source code` no final, que são apenas para desenvolvedores):
 
-            - **Configurações e 13 pelagens:** ícone na Bandeja do Sistema ou `Ctrl + Shift + ,`
+            - **`Teglato.exe`** — Arquivo único: baixou, deu duplo clique, rodou!
+            - **`Teglato-Windows.zip`** — Pacote compacto contendo apenas `Teglato.exe` + `LEIA-ME.txt`.
+
+            ### Dicas rápidas
+            - **Configurações e 13 pelagens:** clique no ícone perto do relógio do Windows ou pressione `Ctrl + Shift + ,`
             - **Travar / destravar posição:** `Ctrl + Shift + L`
-            - **OBS Studio (fundo transparente):** adicione uma *Fonte de Navegador* apontando para `http://127.0.0.1:3777/?obs=1`
+            - **OBS Studio (fundo transparente):** adicione uma *Fonte de Navegador* para `http://127.0.0.1:3777/?obs=1`
+            - **Aviso do Windows SmartScreen?** Clique em **Mais informações** → **Executar assim mesmo**.
           files: |
             release-artifacts/Teglato.exe
+            release-artifacts/Teglato-Windows.zip
             release-artifacts/SHA256SUMS.txt
