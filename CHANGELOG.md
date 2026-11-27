@@ -2,6 +2,18 @@
 
 Todas as alterações relevantes do **Teglato** são documentadas neste arquivo.
 
+## [0.3.0] - 2026-11-27
+
+### Adicionado
+- **Duplo clique no gato** para abrir a janela de Configurações diretamente.
+- **Bolinha de lã vermelha** no canto inferior direito do mousepad para fechar o aplicativo, com destaque visual e legenda **Fechar** ao passar o mouse.
+
+### Corrigido e Melhorado
+- **Digitação com foco no app:** Teclado agora responde normalmente mesmo quando o gato ou a janela de Configurações estiverem selecionados.
+- **Menu da Bandeja simplificado:** Removidos *Pelagem* e *Efeitos Sonoros* do menu oculto da bandeja (mantidos dentro da janela de Configurações).
+- **Cauda lisa nos rajados e escaminha:** Cor sólida contrastante nas caudas de *Laranja listrado*, *Rajado marrom*, *Prateado rajado* e *Escaminha* (sem bolinhas clipando na ponta).
+- **Escala ancorada:** Ao ajustar o tamanho nas Configurações, a janela cresce do canto inferior direito para o canto superior esquerdo.
+
 ## [0.2.1] - 2026-11-27
 
 ### Corrigido
